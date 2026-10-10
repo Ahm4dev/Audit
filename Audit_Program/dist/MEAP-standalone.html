@@ -754,6 +754,78 @@ html.has-nav #menuBtn{display:inline-flex}
 }
 @keyframes navIn{from{transform:translateX(100%)}}
 @keyframes navInL{from{transform:translateX(-100%)}}
+/* MEAP · v7 · Calmer, simpler worksheet design (screen only; loaded last) */
+@media screen{
+:root{--sp:1rem;--bd:#e3e8f0;--bd2:#d3dbe7;--soft:#f6f8fb;--sh:0 1px 2px rgba(15,32,56,.04)}
+
+/* ---- worksheet header: one quiet card ---- */
+.wpcard{padding:1rem 1.2rem;box-shadow:var(--sh)}
+.wp-title{border-bottom:0!important;padding-bottom:0!important;margin-bottom:.2rem!important;gap:1rem}
+.wp-title .ref{font-size:.85rem!important;color:var(--mut);font-weight:600;margin-bottom:.1rem}
+.wp-title h1{font-size:1.45rem;line-height:1.35;margin:.1rem 0 .15rem}
+.wp-title .en{font-size:.78rem;opacity:.75}
+.wpmeta{display:flex;flex-wrap:wrap;gap:.1rem .5rem;font-size:.84rem;color:var(--mut);margin-top:.35rem}
+.wpmeta i{opacity:.4;font-style:normal}
+.wpact{display:flex;flex-direction:column;align-items:flex-end;gap:.5rem}
+.wpact .wpst{display:flex;flex-wrap:wrap;gap:.3rem;justify-content:flex-end}
+.wpobj{margin-top:.7rem;padding-top:.7rem;border-top:1px solid var(--bd)}
+.wpobj .fl,.wph .fl{display:block;font-size:.74rem;color:var(--mut);font-weight:600;margin-bottom:.15rem}
+.wpobj .ed,.wph .ed{border-color:transparent;background:var(--soft)}
+.wph{margin-top:.6rem;gap:.6rem 1rem}
+
+/* ---- collapsible secondary blocks ---- */
+details.wpx{border:1px solid var(--bd);border-radius:var(--rs,10px);background:var(--card,#fff);margin:.55rem 0;padding:0}
+details.wpx>summary{cursor:pointer;list-style:none;padding:.6rem .95rem;font-weight:600;font-size:.92rem;display:flex;align-items:center;gap:.5rem;color:var(--ink-hi,#12335a);user-select:none}
+details.wpx>summary::-webkit-details-marker{display:none}
+details.wpx>summary::before{content:"‹";display:inline-block;transition:transform .15s;opacity:.55;font-size:1.1rem;line-height:1}
+details.wpx[open]>summary::before{transform:rotate(-90deg)}
+details.wpx>summary:hover{background:var(--soft);border-radius:var(--rs,10px)}
+details.wpx[open]>summary{border-bottom:1px solid var(--bd);border-radius:var(--rs,10px) var(--rs,10px) 0 0}
+details.wpx>*:not(summary){margin-left:.95rem;margin-right:.95rem}
+details.wpx>*:last-child{margin-bottom:.8rem}
+details.wpx>summary+*{margin-top:.7rem}
+details.wpap>.card{box-shadow:none;border:0;padding:0;margin-top:.5rem}
+
+/* ---- section tabs (area papers) ---- */
+.wptabs>.wpsecnav{position:sticky;display:flex;gap:.2rem;padding:.35rem 0 0;margin:.8rem 0 0;background:var(--bg);border-bottom:1px solid var(--bd2)}
+.wptabs>.wpsecnav a{border:0;border-bottom:3px solid transparent;border-radius:0;background:none;padding:.5rem .9rem;color:var(--mut);font-weight:600}
+.wptabs>.wpsecnav a:hover{background:none;color:var(--ink-hi);border-color:var(--bd2)}
+.wptabs>.wpsecnav a.on{color:var(--btn);border-bottom-color:var(--btn)}
+.wptabs>.wpsec{display:none;margin-top:1rem}
+.wptabs>.wpsec.on{display:block}
+.wpsech{font-size:1.05rem!important;border-bottom:0!important;margin-bottom:.4rem}
+
+/* ---- tables & chips: fewer lines, fewer colours ---- */
+.tw table{font-size:.88rem}
+.tw thead th{background:var(--soft);font-weight:600;font-size:.8rem;color:var(--mut);border-bottom:1px solid var(--bd2)}
+.tw td,.tw th{border-color:var(--bd)}
+.tw tbody tr:hover{background:var(--soft)}
+.tw td .b.isa,.tw td .isa-chips{display:none}
+.card{box-shadow:var(--sh);border-color:var(--bd)}
+h2{font-size:1.15rem}h3{font-size:1rem;margin:1.1rem 0 .4rem}
+.note{font-size:.88rem}
+.sgn{gap:.6rem}
+
+/* ---- materiality (A500) ---- */
+.v4mat .v4res{margin-top:.2rem}
+.v4mat .v4res>div{background:var(--soft);border-color:var(--bd)}
+.v4mat h3{margin-top:1.3rem;padding-bottom:.3rem;border-bottom:1px solid var(--bd)}
+.v4mat .mtb td,.v4mat .mtb th{padding:.35rem .6rem}
+.v4mat .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:.6rem 1rem;margin:.6rem 0}
+.v4mat .fgrid label{font-size:.8rem;color:var(--mut);font-weight:600}
+.v4mat .fgrid .in,.v4mat .fgrid .sel{width:100%;margin-top:.2rem}
+.v4mat .v4chk{display:grid;gap:.35rem;margin:.5rem 0}
+}
+@media screen and (max-width:640px){
+.wp-title{flex-direction:column}.wpact{align-items:stretch}.wpact .wpst{justify-content:flex-start}
+.wptabs>.wpsecnav{overflow-x:auto}
+}
+/* print: show everything, no chrome */
+@media print{
+.wptabs>.wpsec{display:block!important}
+details.wpx{border:0}details.wpx>summary::before{display:none}
+details.wpx>*:not(summary){display:block}
+}
 </style>
 </head>
 <body>
@@ -3365,6 +3437,27 @@ PL|1950|OCI|Other Comprehensive Income and Equity Movements|الدخل الشا�
 const CAT_SUPER=[['NCA','الموجودات غير المتداولة','Non-current assets'],['CA','الموجودات المتداولة','Current assets'],['EQ','حقوق الملكية','Equity'],['NCL','المطلوبات غير المتداولة','Non-current liabilities'],['CL','المطلوبات المتداولة','Current liabilities'],['PL','قائمة الدخل والدخل الشامل','Income statement']];
 
 /* ===== 25_forms.js ===== */
+
+/* =====================================================================
+   v7 · تبسيط الكتالوج — أوراق أُزيلت لأنها مكررة أو قليلة الفائدة
+   - CAT_DROP     : أوراق شجرة الكتالوج المحذوفة (طلبات/استفسارات مكررة مع قائمة PBC A355Q، ونسخ «النموذج» المكررة للخطابات)
+   - CAT_NOEST    : مجالات لا تحتاج ورقة «التقديرات المحاسبية» (لا تقديرات جوهرية فيها)
+   - CAT_RETIRE   : أوراق المكتبة القديمة المُلغاة [المراجع, البديل المقترح]
+   أوراق الاستفسار لكل مجال (…Q) أُلغيت؛ سجل الاستفسارات صار في صفحة «الاستفسارات» العامة.
+   ===================================================================== */
+const CAT_DROP=new Set(['A200Q','A210Q','A325Q','A340Q','B200Q','B300Q','C105Q','D500Q','D540Q','D700Q',
+ 'A205L','A215L','A340L','A350L','D515L','D520L','D525L','D530L','D545L','B410','A310','C130E']);
+const CAT_NOEST=new Set(['CASH','EQY','NCI','BOR','ONL','GG','DEF','CBR','OCL','RPT','OTX','COS','EMP','OOE','OIN','FIN','OEX','OCI','PRE']);
+const CAT_RETIRE=[
+ ['B-01 B-02 B-03 B-04','A500','الأهمية النسبية تُحتسب في A500'],
+ ['A-08 A-09','','الفهارس متاحة من «الخريطة»'],
+ ['C-09 C-19','C050','اختبارات الرقابة في C050–C090'],
+ ['D-01 D-02 D-03 D-04 D-05 D-06 D-07 D-08 D-09 D-10 D-11 D-12 D-13 D-14 D-15 D-16','','حاسبات العينات في صفحة «العينات» وفي ورقة 125 لكل مجال'],
+ ['M-12','440-101','النزاعات الضريبية ضمن مجال ضريبة الدخل'],
+ ['P-02 P-03 P-04 P-05 P-06 P-09 P-10','B250','التقديرات المحاسبية في B240–B265'],
+ ['Q-08','C135','الأحداث اللاحقة في C135'],
+ ['Y-01 Y-02 Y-03 Y-04 Y-05 Y-06 Y-07 Y-08 Y-09 Y-10 Y-11 Y-12 Y-13 Y-14 Y-15 Y-16 Y-17 Y-18 Y-19 Y-20','','نماذج عامة قليلة الفائدة']
+];
 ;
 /* MEAP data · Questionnaires, forms & request lists */
 /* =====================================================================
@@ -3742,7 +3835,7 @@ const fmtT=ms=>{const d=new Date(ms);return `${pad2(d.getHours())}:${pad2(d.getM
 function rndHex(n){if(n>=32&&crypto.randomUUID)return crypto.randomUUID().replace(/-/g,'').slice(0,n);const a=new Uint8Array(Math.ceil(n/2));crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('').slice(0,n)}
 function rnd36(n){const a=new Uint8Array(n);crypto.getRandomValues(a);const c='0123456789abcdefghijklmnopqrstuvwxyz';let s='';for(const b of a)s+=c[b%36];return s}
 const uid=p=>(p||'')+Date.now().toString(36)+rnd36(6);
-const num=v=>{const n=parseFloat(String(v==null?'':v).replace(/[,\s٬]/g,''));return isFinite(n)?n:0};
+const num=v=>{const n=parseFloat(String(v==null?'':v).replace(/[\u0660-\u0669]/g,d=>d.charCodeAt(0)-0x660).replace(/[\u06F0-\u06F9]/g,d=>d.charCodeAt(0)-0x6F0).replace(/٫/g,'.').replace(/[,\s٬،]/g,''));return isFinite(n)?n:0};
 const fmtN=v=>isFinite(v)&&v?Math.round(v).toLocaleString('en-US'):'-';
 const fmtSize=b=>b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -5895,7 +5988,7 @@ const SELFTEST={res:null,running:false,
   if(a===''||a==='selftest')return '';if(a==='c')return ctx.cos.has(p[1])?'':'شركة غير موجودة: '+p[1];if(a==='settings')return !p[1]||STABS.some(x=>x[0]===p[1])?'':'تبويب إعدادات غير موجود: '+p[1];if(a==='find')return '';
   if(a!=='e')return 'مسار غير معروف: '+a;if(!ctx.engs.has(p[1]+'/'+p[2]))return 'ارتباط غير موجود: '+p[1]+'/'+p[2];const view=p[3]||'dash',arg=p.slice(4).join('/');
   const VX={fs:x=>['','A','L','E','P','O'].includes(x),acc:x=>!x||AC[x],cyc:x=>!x||CY[x],cx:x=>!x||CXM[x],ind:x=>!x||IN[x],ph:x=>!x||PHM[x],isa:x=>!x||ISA.some(s=>String(s[0])===x),wp:x=>WP[x],form:x=>TPLM[x],forms:x=>!x||TPLM[x],refs:x=>!x||refById(x),proc:x=>PIDX[x],logs:x=>['','f','a','r'].includes(x),risks:x=>['','sig','fr','H'].includes(x)||x.length<20,rcm:x=>!x||CY[x],
-   tb:x=>['','upload','map','ver','ana'].includes(x)||(x.startsWith('acct:')&&(!TBSTORE.ready()||TBSTORE.by.has(x.slice(5)))),jet:x=>!x||!!CUR.eng.get('jet.'+x+'.sum',null),search:()=>true};
+   tb:x=>['','upload','map','ver','ana','cls'].includes(x)||(x.startsWith('acct:')&&(!TBSTORE.ready()||TBSTORE.by.has(x.slice(5)))),jet:x=>!x||!!CUR.eng.get('jet.'+x+'.sum',null),search:()=>true};
   if(!V[view]&&!['refs','forms'].includes(view))return 'صفحة غير موجودة: '+view;const f=VX[view];if(f&&!f(arg))return 'هدف غير موجود: '+view+'/'+arg;if(!f&&arg)return 'معامل غير متوقع: '+view+'/'+arg;return ''},
  routes(base,ctx){const R=new Set(['#/','#/settings/general','#/find/'+encodeURIComponent('نقدية')]);STABS.forEach(s=>R.add('#/settings/'+s[0]));ctx.cos.forEach(c=>R.add('#/c/'+encodeURIComponent(c)));
   const e=v=>R.add(base+'/'+v);NAV.forEach(g=>g[2].forEach(i=>e(i[0])));TABS.forEach(x=>e(x[0]));['logs/f','logs/a','logs/r','risks/sig','risks/fr','risks/H','tb/upload','tb/map','tb/ver','tb/ana','refs','model','inbox','print','jet','search/'+encodeURIComponent('النقدية')].forEach(e);
@@ -6714,36 +6807,43 @@ const MAT_PMF=[['first','ارتباط لأول مرة / أرصدة افتتاح�
 function matTBBench(){if(!TBSTORE.ready())return null;const calc=o=>{const T=TBSTORE.lineTotals(o);const g=ids=>ids.reduce((s,i)=>s+(T[i]||0),0);const P=A.filter(a=>a.fs==='P');
   const REV=-g(['rev']),PBT=-g(P.filter(a=>a.id!=='taxx').map(a=>a.id)),TA=g(A.filter(a=>a.fs==='A').map(a=>a.id)),EXP=g(['cos','payx','admx','profx','sellx','depx','eclx','fincost']),EQ=-g(A.filter(a=>a.fs==='E').map(a=>a.id)),GP=REV-g(['cos']);return{PBT,REV,GP,EXP,TA,EQ}};
  const cy=calc({adjusted:true});const py=TBSTORE.pyMap?calc({priorYear:true}):null;return{cy,py}}
-function matHTML(ref){const M=matState();const B=matTBBench();const ro=RO();const bm=M.bm in MAT_NAMES?M.bm:'PBT';const log=G('eng.matlog',[])||[];const flags=G('eng.pmf',{})||{};
- const bandOf=MAT_BANDS[bm]||[0,100,5];const pctWarn=M.mp&&(M.mp<bandOf[0]||M.mp>bandOf[1]);const tbv=B?Math.abs(B.cy[bm]):null;const drift=B&&M.bv&&tbv!=null&&M.bv>0?(tbv-M.bv)/M.bv:null;
- const used=MAT_PMF.reduce((s,f)=>s+(flags[f[0]]?f[2]:0),0);const sugPM=Math.max(50,75-used);const sm=matSpecific();
- return `<div class="v4mat" data-v4c="mat">
- <div class="v4res"><div><span>الأهمية النسبية الكلية OM</span><b id="mOM">${M.om?fmtN(M.om):'—'}</b></div><div><span>أهمية الأداء PM</span><b id="mPM">${M.pm?fmtN(M.pm):'—'}</b></div><div><span>حد الضآلة الواضحة CT</span><b id="mCT">${M.ct?fmtN(M.ct):'—'}</b></div>
-  <div class="v4resn">${M.set?'تُعمَّم تلقائيًا على الترويسة وأوراق الاختبار والعينات وتقييم التحريفات':'لم تُحتسب بعد — أكمل الخطوات أدناه'}</div></div>
- ${drift!=null&&Math.abs(drift)>=.1?`<p class="note warn">⚠ قيمة المعيار في الميزان الحالي (${fmtN(tbv)}) تختلف بنسبة ${(drift*100).toFixed(0)}% عن القيمة المستخدمة (${fmtN(M.bv)}) — أعد تقييم الأهمية النسبية (ISA 320.12).${ro?'':' <button class="btn sm" type="button" data-v4act="matusetb">استخدام قيمة الميزان</button>'}</p>`:''}
- <h3>١) المعيار (Benchmark)</h3>${B?`<div class="tw"><table><thead><tr><th>المعيار</th><th>السنة الحالية (بعد التسويات)</th><th>السنة السابقة</th><th>المتوسط</th><th>النطاق الشائع</th><th></th></tr></thead><tbody>${Object.keys(MAT_NAMES).map(k=>{const c=B.cy[k],p=B.py?B.py[k]:null;return `<tr${k===bm?' class="sel"':''}><td>${esc(MAT_NAMES[k])}</td><td dir="ltr">${fmtN(Math.abs(c))}${c<0&&k==='PBT'?' <span class="b bad">خسارة</span>':''}</td><td dir="ltr">${p==null?'—':fmtN(Math.abs(p))}</td><td dir="ltr">${p==null?'—':fmtN((Math.abs(c)+Math.abs(p))/2)}</td><td>${MAT_BANDS[k][0]}%–${MAT_BANDS[k][1]}%</td><td>${ro?'':`<button class="btn ${k===bm?'':'g'} sm" type="button" data-v4act="matpick" data-bm="${k}">${k===bm?'✓ المختار':'اختيار'}</button>`}</td></tr>`}).join('')}</tbody></table></div><p class="mut small">${esc(TBSTORE.stamp())}. عند ربحية متقلبة أو خسارة استخدم متوسط ثلاث سنوات أو معيارًا بديلًا (إيرادات/أصول) ووثّق السبب.</p>`:`<p class="note">لم يُرفع ميزان مراجعة — اختر المعيار وأدخل القيمة يدويًا، أو <a href="${L('tb/upload')}">ارفع الميزان</a>.</p>`}
- <div class="fgrid"><label>المعيار المختار<select class="sel" data-k="eng.bm" data-v4in aria-label="المعيار"${ro?' disabled':''}>${Object.keys(MAT_NAMES).concat(['OTH']).map(k=>`<option value="${k}"${k===bm||(bm==='OTH'&&k==='OTH')?' selected':''}>${esc(MAT_NAMES[k]||'معيار آخر (متوسط 3 سنوات / مُعدَّل)')}</option>`).join('')}</select></label>
-  <label>قيمة المعيار المستخدمة<input class="in" dir="ltr" inputmode="decimal" data-k="eng.bv" data-v4in value="${esc(G('eng.bv',''))}"${ro?' readonly':''}></label>
-  <label>نسبة الأهمية الكلية %<input class="in" dir="ltr" type="number" step="0.05" data-k="eng.mp" data-v4in value="${esc(G('eng.mp','5'))}"${ro?' readonly':''}></label></div>
- ${pctWarn?`<p class="note warn">النسبة المختارة خارج النطاق الشائع لهذا المعيار (${bandOf[0]}%–${bandOf[1]}%) — وثّق المبرر في خانة الأساس.</p>`:''}
- <h3>٢) أهمية الأداء وحد الضآلة</h3><p class="mut small">اختر عوامل الخطر المنطبقة؛ تُخفَّض نسبة PM المقترحة من 75% إلى حد أدنى 50%.</p>
- <div class="v4chk">${MAT_PMF.map(f=>`<label class="row"><input type="checkbox" data-v4pmf="${f[0]}"${flags[f[0]]?' checked':''}${ro?' disabled':''}> ${esc(f[1])} <span class="mut small">(−${f[2]}%)</span></label>`).join('')}</div>
- <p>نسبة PM المقترحة: <b>${sugPM}%</b> ${ro?'':`<button class="btn g sm" type="button" data-v4act="matsug" data-pm="${sugPM}">تطبيق</button>`}</p>
- <div class="fgrid"><label>نسبة PM من OM %<input class="in" dir="ltr" type="number" step="1" data-k="eng.pmp" data-v4in value="${esc(G('eng.pmp','75'))}"${ro?' readonly':''}></label><label>نسبة CT من OM %<input class="in" dir="ltr" type="number" step="0.5" data-k="eng.ctp" data-v4in value="${esc(G('eng.ctp','5'))}"${ro?' readonly':''}></label></div>
- <h3>٣) الأهمية الخاصة لبنود محددة (ISA 320.10)</h3><p class="mut small">مبالغ أقل من OM لبنود يتوقع أن تؤثر على قرارات المستخدمين (مكافآت الإدارة، الأطراف ذات العلاقة، الإيرادات في منشآت معينة…). تُستخدم بدل PM في ورقة العمل الخاصة بالبند.</p>
- ${cgReg(ref,'spm',{cols:[{k:'line',h:'بند القوائم المالية',t:'s',opts:A.map(a=>a.id+' — '+a.n)},{k:'amt',h:'المبلغ المحدد',t:'n',sum:0},{k:'why',h:'المبرر',t:'t'}],n:2})}
- <h3>٤) أساس الاستنتاج</h3>${edc('wp.'+ref+'.t.matbasis',{label:'أساس اختيار المعيار والنسب',ph:'اشرح سبب اختيار المعيار والنسبة وعوامل الخطر…'})}
- ${log.length?`<details class="nt"><summary>سجل التغييرات (${log.length})</summary><ul class="lkl">${log.slice().reverse().slice(0,30).map(x=>`<li>${fmtDT(x.t)} — ${esc(x.note||'')} OM=${fmtN(x.om)} PM=${fmtN(x.pm)} CT=${fmtN(x.ct)} — ${esc(USERS.nameOf(x.by))}</li>`).join('')}</ul></details>`:''}</div>`}
+function matHTML(ref){const M=matState();const B=matTBBench();const ro=RO();const bm=M.bm in MAT_NAMES?M.bm:(M.bm==='OTH'?'OTH':'PBT');const log=G('eng.matlog',[])||[];const flags=G('eng.pmf',{})||{};
+  const bandOf=MAT_BANDS[bm]||[0,100,5];const pctWarn=M.mp&&bm!=='OTH'&&(M.mp<bandOf[0]||M.mp>bandOf[1]);const tbv=B&&bm in B.cy?Math.abs(B.cy[bm]):null;const drift=B&&M.bv&&tbv?(tbv-M.bv)/M.bv:null;
+  const used=MAT_PMF.reduce((s,f)=>s+(flags[f[0]]?f[2]:0),0);const sugPM=Math.max(50,75-used);
+  const tbEmpty=!!B&&Object.keys(MAT_NAMES).every(k=>!Math.abs(B.cy[k]||0));
+  const nSM=matSpecific().length;
+  const tbBlock=B?(tbEmpty?`<p class="note warn">الميزان محمّل لكن حساباته غير مربوطة ببنود القوائم المالية، فلا يمكن استخراج المعيار منه. <a href="${L('tb/cls')}">اربط الحسابات (التبويب)</a> أو أدخل قيمة المعيار يدويًا أدناه.</p>`
+   :`<div class="tw"><table class="mtb"><thead><tr><th>المعيار</th><th>السنة الحالية</th><th>السابقة</th><th>النطاق الشائع</th><th></th></tr></thead><tbody>${Object.keys(MAT_NAMES).map(k=>{const c=B.cy[k],p=B.py?B.py[k]:null;return `<tr${k===bm?' class="sel"':''}><td>${esc(MAT_NAMES[k])}</td><td dir="ltr">${fmtN(Math.abs(c))}${c<0&&k==='PBT'?' <span class="b bad">خسارة</span>':''}</td><td dir="ltr">${p==null?'—':fmtN(Math.abs(p))}</td><td>${MAT_BANDS[k][0]}%–${MAT_BANDS[k][1]}%</td><td>${ro?'':`<button class="btn ${k===bm?'':'g'} sm" type="button" data-v4act="matpick" data-bm="${k}">${k===bm?'✓ المختار':'اختيار'}</button>`}</td></tr>`}).join('')}</tbody></table></div><p class="mut small">${esc(TBSTORE.stamp())}. عند ربحية متقلبة أو خسارة استخدم متوسط ثلاث سنوات أو معيارًا بديلًا ووثّق السبب.</p>`)
+   :`<p class="mut small">لم يُرفع ميزان مراجعة — أدخل قيمة المعيار يدويًا أو <a href="${L('tb/upload')}">ارفع الميزان</a> ليُقترح تلقائيًا.</p>`;
+  return `<div class="v4mat" data-v4c="mat">
+  <div class="v4res"><div><span>الأهمية الكلية OM</span><b id="mOM">${M.om?fmtN(M.om):'—'}</b></div><div><span>أهمية الأداء PM</span><b id="mPM">${M.pm?fmtN(M.pm):'—'}</b></div><div><span>حد الضآلة CT</span><b id="mCT">${M.ct?fmtN(M.ct):'—'}</b></div>
+   <div class="v4resn" id="mHint">${M.set?'تُعمَّم تلقائيًا على كل أوراق العمل والعينات وتقييم التحريفات.':'أدخل قيمة المعيار ونسبته فتُحتسب الأهمية فورًا.'}</div></div>
+  ${drift!=null&&Math.abs(drift)>=.1?`<p class="note warn">⚠ قيمة المعيار في الميزان (${fmtN(tbv)}) تختلف ${(drift*100).toFixed(0)}% عن المستخدمة (${fmtN(M.bv)}) — أعد التقييم (ISA 320.12).${ro?'':' <button class="btn sm" type="button" data-v4act="matusetb">استخدام قيمة الميزان</button>'}</p>`:''}
+  <h3>١) المعيار والنسبة</h3>${tbBlock}
+  <div class="fgrid"><label>المعيار المختار<select class="sel" data-k="eng.bm" data-v4in aria-label="المعيار"${ro?' disabled':''}>${Object.keys(MAT_NAMES).concat(['OTH']).map(k=>`<option value="${k}"${k===bm?' selected':''}>${esc(MAT_NAMES[k]||'معيار آخر (متوسط 3 سنوات / مُعدَّل)')}</option>`).join('')}</select></label>
+   <label>قيمة المعيار<input class="in" dir="ltr" inputmode="decimal" data-k="eng.bv" data-v4in value="${esc(G('eng.bv',''))}" placeholder="مثال: 1000000"${ro?' readonly':''}></label>
+   <label>نسبة الأهمية الكلية %<input class="in" dir="ltr" inputmode="decimal" data-k="eng.mp" data-v4in value="${esc(G('eng.mp','5'))}"${ro?' readonly':''}></label></div>
+  ${pctWarn?`<p class="note warn">النسبة خارج النطاق الشائع (${bandOf[0]}%–${bandOf[1]}%) — وثّق المبرر في خانة الأساس.</p>`:''}
+  <h3>٢) أهمية الأداء وحد الضآلة</h3>
+  <div class="fgrid"><label>PM كنسبة من OM %<input class="in" dir="ltr" inputmode="decimal" data-k="eng.pmp" data-v4in value="${esc(G('eng.pmp','75'))}"${ro?' readonly':''}></label><label>CT كنسبة من OM %<input class="in" dir="ltr" inputmode="decimal" data-k="eng.ctp" data-v4in value="${esc(G('eng.ctp','5'))}"${ro?' readonly':''}></label></div>
+  <details class="wpx"><summary>عوامل الخطر التي تخفّض نسبة PM <span class="mut small">(المقترح ${sugPM}%)</span></summary>
+   <div class="v4chk">${MAT_PMF.map(f=>`<label class="row"><input type="checkbox" data-v4pmf="${f[0]}"${flags[f[0]]?' checked':''}${ro?' disabled':''}> ${esc(f[1])} <span class="mut small">(−${f[2]}%)</span></label>`).join('')}</div>
+   <p>النسبة المقترحة: <b>${sugPM}%</b> ${ro?'':`<button class="btn g sm" type="button" data-v4act="matsug" data-pm="${sugPM}">تطبيق</button>`}</p></details>
+  <details class="wpx"${nSM?' open':''}><summary>أهمية خاصة لبنود محددة (ISA 320.10) ${nSM?`<span class="cnt">${nSM}</span>`:''}</summary>
+   <p class="mut small">مبالغ أقل من OM لبنود يتوقع أن تؤثر على قرارات المستخدمين؛ تُستخدم بدل PM في ورقة البند.</p>
+   ${cgReg(ref,'spm',{cols:[{k:'line',h:'بند القوائم المالية',t:'s',opts:A.map(a=>a.id+' — '+a.n)},{k:'amt',h:'المبلغ',t:'n',sum:0},{k:'why',h:'المبرر',t:'t'}],n:2})}</details>
+  <h3>٣) أساس الاختيار</h3>${edc('wp.'+ref+'.t.matbasis',{label:'أساس اختيار المعيار والنسب',ph:'اشرح سبب اختيار المعيار والنسبة وعوامل الخطر…'})}
+  ${log.length?`<details class="wpx"><summary>سجل التغييرات (${log.length})</summary><ul class="lkl">${log.slice().reverse().slice(0,30).map(x=>`<li>${fmtDT(x.t)} — ${esc(x.note||'')} OM=${fmtN(x.om)} PM=${fmtN(x.pm)} CT=${fmtN(x.ct)} — ${esc(USERS.nameOf(x.by))}</li>`).join('')}</ul></details>`:''}</div>`}
 /* recompute and save OM/PM/CT whenever an input of the materiality sheet changes */
 function matRecalc(note){if(!CUR.eng||RO())return;const bv=num(G('eng.bv','')),mp=num(G('eng.mp','5')),pmp=num(G('eng.pmp','75')),ctp=num(G('eng.ctp','5'));const om=Math.round(bv*mp/100),pm=Math.round(om*pmp/100),ct=Math.round(om*ctp/100);
  const old=matState();if(om===old.om&&pm===old.pm&&ct===old.ct)return;const o={'eng.mat':fmtN(om),'eng.pm':fmtN(pm),'eng.ct':fmtN(ct)};if(!om){o['eng.mat']='';o['eng.pm']='';o['eng.ct']=''}CUR.eng.setMany(o,{label:'احتساب الأهمية النسبية'});
  const log=(G('eng.matlog',[])||[]).slice();log.push({bm:G('eng.bm','PBT'),value:bv,om,pm,ct,ver:TBSTORE.ver,by:SESSION.id,t:Date.now(),note:note||'تعديل'});CUR.eng.set('eng.matlog',log.slice(-100),{label:'سجل الأهمية النسبية',noUndo:true});matPaint();document.dispatchEvent(new CustomEvent('meap:mat'))}
-function matPaint(){const M=matState();const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v?fmtN(v):'—'};set('mOM',M.om);set('mPM',M.pm);set('mCT',M.ct);$$('[data-matchip]').forEach(c=>{const k=c.dataset.matchip;c.textContent=M[k]?fmtN(M[k]):'—'})}
+function matPaint(){const M=matState();const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v?fmtN(v):'—'};set('mOM',M.om);set('mPM',M.pm);set('mCT',M.ct);const hn=document.getElementById('mHint');if(hn)hn.textContent=M.set?'تُعمَّم تلقائيًا على كل أوراق العمل والعينات وتقييم التحريفات.':'أدخل قيمة المعيار ونسبته فتُحتسب الأهمية فورًا.';$$('[data-matchip]').forEach(c=>{const k=c.dataset.matchip;c.textContent=M[k]?fmtN(M[k]):'—'})}
 document.addEventListener('input',e=>{const el=e.target;if(el instanceof Element&&el.hasAttribute&&el.hasAttribute('data-v4in')&&el.closest('[data-v4c="mat"]'))matRecalc()});
 document.addEventListener('change',e=>{const el=e.target;if(!(el instanceof Element))return;if(el.hasAttribute('data-v4in')&&el.closest('[data-v4c="mat"]')){matRecalc();return}
  if(el.dataset&&el.dataset.v4pmf){const f=Object.assign({},G('eng.pmf',{})||{});f[el.dataset.v4pmf]=el.checked;CUR.eng.set('eng.pmf',f,{label:'عوامل خطر أهمية الأداء'});const used=MAT_PMF.reduce((s,x)=>s+(f[x[0]]?x[2]:0),0);const blk=el.closest('[data-v4c="mat"]');const p=blk&&blk.querySelector('[data-pm]');if(p){p.dataset.pm=Math.max(50,75-used);p.parentElement.querySelector('b').textContent=Math.max(50,75-used)+'%'}}});
 document.addEventListener('click',e=>{const b=e.target instanceof Element&&e.target.closest('[data-v4act]');if(!b||RO())return;const a=b.dataset.v4act;
- if(a==='matpick'){CUR.eng.set('eng.bm',b.dataset.bm,{label:'معيار الأهمية'});const B=matTBBench();if(B){CUR.eng.set('eng.bv',String(Math.round(Math.abs(B.cy[b.dataset.bm]))),{label:'قيمة المعيار من الميزان'});const m=MAT_BANDS[b.dataset.bm];if(m)CUR.eng.set('eng.mp',String(m[2]),{label:'نسبة الأهمية'})}matRecalc('اختيار معيار '+b.dataset.bm);UI.refreshView()}
+ if(a==='matpick'){CUR.eng.set('eng.bm',b.dataset.bm,{label:'معيار الأهمية'});const B=matTBBench();if(B){const v=Math.round(Math.abs(B.cy[b.dataset.bm]||0));if(v>0)CUR.eng.set('eng.bv',String(v),{label:'قيمة المعيار من الميزان'});else toast('لا توجد قيمة لهذا المعيار في الميزان (الحسابات غير مربوطة ببنود القوائم). أدخل القيمة يدويًا أو اربط الحسابات من «التبويب».','w',7000);const m=MAT_BANDS[b.dataset.bm];if(m)CUR.eng.set('eng.mp',String(m[2]),{label:'نسبة الأهمية'})}matRecalc('اختيار معيار '+b.dataset.bm);UI.refreshView()}
  else if(a==='matusetb'){const B=matTBBench();if(B){CUR.eng.set('eng.bv',String(Math.round(Math.abs(B.cy[G('eng.bm','PBT')]||0))),{label:'قيمة المعيار من الميزان'});matRecalc('تحديث قيمة المعيار من الميزان');UI.refreshView()}}
  else if(a==='matsug'){CUR.eng.set('eng.pmp',b.dataset.pm,{label:'نسبة أهمية الأداء'});matRecalc('تطبيق نسبة PM المقترحة');UI.refreshView()}});
 /* specific materiality rows → eng.sm (kept as one array so any sheet can read it) */
@@ -6769,7 +6869,7 @@ function ctBuild(){if(CT.ready)return;CT.ready=true;
  for(const ln of CAT_TREE_SRC.split('\n')){const l=ln.trim();if(!l)continue;const p=l.split('|');
   if(p[0]==='@S'){cs=S(p[1]);cg=null;continue}
   if(p[0]==='@G'){cg={id:p[1],en:p[2],ar:p[3],items:[],sec:cs.id};cs.groups.push(cg);CT.grpMeta[cg.id]=cg;continue}
-  const it=ctAdd({disp:p[0],en:p[1],ar:p[2],sec:cs.id,grp:cg.id,ty:ctTypes(p[3])});cg.items.push(it.ref)}
+  if(CAT_DROP.has(p[0]))continue;const it=ctAdd({disp:p[0],en:p[1],ar:p[2],sec:cs.id,grp:cg.id,ty:ctTypes(p[3])});cg.items.push(it.ref)}
  /* Plans and Procedures: super-groups → areas → papers */
  const pp=S('PP');pp.groups=[];const sg={};
  for(const [id,ar,en] of CAT_SUPER){const g={id:'PP-'+id,en,ar,items:[],areas:[],sec:'PP'};sg[id]=g;pp.groups.push(g);CT.grpMeta[g.id]=g}
@@ -6779,8 +6879,7 @@ function ctBuild(){if(CT.ready)return;CT.ready=true;
   const mk=(disp,en2,ar2,ty,kind)=>{const it=ctAdd({disp,en:en2,ar:ar2,sec:'PP',grp:'PP-'+sup,area:id,ty,kind});ar_.items.push(it.ref);return it};
   ar_.main=cref(base);
   mk(base,en+' — Audit procedures and risk response',ar+' — إجراءات المراجعة وتقييم المخاطر والاستجابة',[{t:'X',p:'a101'}],'main');
-  mk(base+'E',en+' — Accounting estimate — Risk assessment and response',ar+' — التقديرات المحاسبية: تقييم المخاطر والاستجابة',[{t:'X',p:'a101e'}],'est');
-  mk(base+'Q',en+' — Query',ar+' — استفسار',[{t:'X',p:'a101q'}],'query');
+  if(!CAT_NOEST.has(id))mk(base+'E',en+' — Accounting estimate — Risk assessment and response',ar+' — التقديرات المحاسبية: تقييم المخاطر والاستجابة',[{t:'X',p:'a101e'}],'est');
   const sp=[];if(spec&&spec!=='new')for(const s of spec.split(';')){const q=s.split(':');if(q.length<5)continue;sp.push({key:q[0],ref:q[1],en:q[2],ar:q[3],ty:ctTypes(q.slice(4).join(':'))})}
   for(const s of sp)if(/^\d+$/.test(s.key))mk(s.ref,s.en,s.ar,s.ty,'special');
   mk(isCOS?pre+'.102':pre+'.120','Worksheet - '+en+' - Substantive analytical procedures','ورقة عمل — '+ar+' — الإجراءات التحليلية الجوهرية',[{t:'X',p:'a120'}],'an');
@@ -6789,7 +6888,8 @@ function ctBuild(){if(CT.ready)return;CT.ready=true;
   CT.areas.push(ar_);CT.areaBy[id]=ar_;sg[sup].areas.push(ar_)}
  /* legacy claims: tree first, then the account lists of each area, then the remaining legacy papers by letter */
  for(const ref of CT.order){const it=CT.items[ref];for(const t of it.ty)if(t.t==='L')t.p.split(',').forEach(r=>{r=r.trim();if(r&&!CT.leg[r])CT.leg[r]=ref})}
- for(const a of CT.areas){const tod=a.items[a.items.length-1];const todItem=a.items.map(r=>CT.items[r]).filter(x=>x.kind==='tod')[0];
+ CT.retired={};for(const [rs,host,why] of CAT_RETIRE)rs.split(' ').forEach(r=>{if(!CT.leg[r]){CT.leg[r]='RETIRED';CT.retired[r]={host,why}}});
+  for(const a of CT.areas){const tod=a.items[a.items.length-1];const todItem=a.items.map(r=>CT.items[r]).filter(x=>x.kind==='tod')[0];
   for(const ln of a.lines){const ac=AC[ln];if(!ac)continue;for(const r of split(ac.wps)){if(!WP[r]||CT.leg[r])continue;CT.leg[r]=todItem.ref;a.legacy.push(r);todItem.legacyExtra=(todItem.legacyExtra||[]);todItem.legacyExtra.push(r)}}}
  const sup=pp.groups.length;const sg2={id:'PP-sup',en:'Supplementary library papers',ar:'أوراق مكمّلة من المكتبة (مدمجة)',items:[],areas:[],sec:'PP'};CT.grpMeta[sg2.id]=sg2;
  const byL={};for(const w of W){if(CT.leg[w[0]])continue;(byL[w[0].split('-')[0]]=byL[w[0].split('-')[0]]||[]).push(w[0])}
@@ -6885,26 +6985,30 @@ function ctAutoObj(it,a){try{const XO={"A105": "تجميع الأوراق الم
 function ctHdrDefaults(it,ref){const w=WP[ref];const a=it.area?CT.areaBy[it.area]:null;return{ref:it.disp,client:CUR.company.name,period:G('eng.period',G('eng.year','')),area:a?a.ar:(CT.secs.find(s=>s.id===it.sec)||{ar:''}).ar,acct:a?a.lines.map(l=>AC[l]?AC[l].n:l).join('، '):'',obj:w.ob||it.ob||ctAutoObj(it,a)}}
 const HDRAR={ref:'مرجع الورقة',client:'العميل',period:'الفترة',area:'المجال',acct:'الحساب / العملية',obj:'الهدف',asr:'التأكيدات المعنية',risk:'المخاطر المعنية',pop:'المجتمع',smeth:'طريقة العينة',ssize:'حجم العينة',src:'المستندات المصدرية',xref:'المراجع التبادلية'};
 function ctPage(it,opt){opt=opt||{};const ref=it.ref,w=WP[ref];PRES.cur.wp=ref;CUR.lock=apFinal({t:'wp',id:ref});const ex=ctOff(ref);const defs=ctHdrDefaults(it,ref);const sec=CT.secs.find(s=>s.id===it.sec)||{ar:''};
- const hdrKeys=['ref','client','period','area','acct','obj','asr','risk','pop','smeth','ssize','src','xref'];
- const auto=k=>({ref:1,client:1,period:1,area:1}[k]);
- const hdr=hdrKeys.map(k=>`<div><label class="fl">${HDRAR[k]}</label>${auto(k)?`<div class="ed ro">${esc(defs[k])}</div>`:edc('wp.'+ref+'.h.'+k,{dv:defs[k]||'',label:HDRAR[k],ph:'—'})}</div>`).join('');
- return `<div class="print-head">${esc(CUR.company.name)} · ${esc(G('eng.year',''))} · ${esc(it.disp)} ${esc(it.ar)} · طُبع بواسطة ${esc(SESSION.display)} في ${fmtDT(Date.now())}</div>
- <div class="card wpcard"><div class="wp-title"><div><div class="ref" style="font-size:1.1rem">${esc(it.disp)} <span class="mut small">· ${esc(sec.ar)}</span></div><h1 style="margin:.1rem 0">${esc(it.ar)}</h1><div class="mut small" dir="ltr" style="text-align:left">${esc(it.en)}</div></div>
- <div class="wpact noprint"><div>${stChip(ref)} ${isaL(w.isa)}</div><div class="row">${can('edit')?(it.custom?`<button class="btn d sm" type="button" data-v4act="catdel" data-ref="${esc(ref)}">نقل إلى سلة المحذوفات</button>`:`<button class="btn g sm" type="button" data-v4act="catex" data-ref="${esc(ref)}">${ex?'إعادة إدراج الورقة':'استبعاد من الارتباط'}</button>`):''}<button class="btn g sm" type="button" data-act="wpxlsx" data-ref="${esc(ref)}">⤓ Excel</button><button class="btn g sm" type="button" data-act="print">🖨 طباعة</button></div></div></div>
- ${matStrip()}
- ${ex?'<div class="note bad">هذه الورقة مستبعدة من الارتباط ومفصولة عن الروابط والتقدم. أعد إدراجها لتفعيل ربطها من جديد.</div>':''}
- <div class="wph">${hdr}</div></div>
- <div data-block="ap|wp:${esc(ref)}">${apHTML({t:'wp',id:ref})}</div>${typeof rdyPanel==='function'?rdyPanel(it):''}${CUR.lock?'<p class="note ok noprint">🔒 هذه الورقة معتمدة ومقفلة للتعديل. يمكن إعادة فتحها بمبرر موثق.</p>':''}
- <div class="wpbody">${ctBody(it,opt)}</div>
- ${typeof excBlock==='function'?excBlock(it):''}<h3>الاستنتاج (Conclusion)</h3>${edc('wp.'+ref+'.t.cc',{label:'الاستنتاج',ph:'بناءً على العمل المنفذ والموثق، الاستنتاج بشأن هذا البند/المجال…'})}
- <h3>ملاحظات المراجِع</h3>${edc('wp.'+ref+'.t.rn',{label:'ملاحظات المراجع',ph:'—'})}
- <h3>التعليقات المتسلسلة</h3><div data-block="cm|${esc(ref)}">${cmHTML(ref)}</div>
- <h3>التوقيعات</h3><div class="sgn">${signBox(ref,'prep','أعدها (المعدّ)','edit')}${signBox(ref,'rev','راجعها (المراجع الأول)','review')}${signBox(ref,'part','الشريك','partner')}</div>
- <h2 id="wp-att">المرفقات</h2><div data-block="att|${esc(ref)}">${attHTML(ref)}</div>
- <h2 id="wp-lk">الروابط مع أوراق العمل الأخرى</h2><div data-block="lk|${esc(ref)}">${linksHTML(ref)}</div>`}
+  /* v7 · compact header: identity as one meta line, objective visible, rarely-used fields collapsed */
+  const XK=['asr','risk','pop','smeth','ssize','src','xref'];
+  const xFilled=XK.some(k=>String(G('wp.'+ref+'.h.'+k,'')||'').trim());
+  const xHtml=XK.map(k=>`<div><label class="fl">${HDRAR[k]}</label>${edc('wp.'+ref+'.h.'+k,{dv:defs[k]||'',label:HDRAR[k],ph:'—'})}</div>`).join('');
+  const meta=[defs.client,defs.period,defs.area].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('<i>·</i>');
+  return `<div class="print-head">${esc(CUR.company.name)} · ${esc(G('eng.year',''))} · ${esc(it.disp)} ${esc(it.ar)} · طُبع بواسطة ${esc(SESSION.display)} في ${fmtDT(Date.now())}</div>
+  <div class="card wpcard"><div class="wp-title"><div><div class="ref">${esc(it.disp)} <span class="mut small">· ${esc(sec.ar)}</span></div><h1>${esc(it.ar)}</h1><div class="mut small en" dir="ltr">${esc(it.en)}</div><div class="wpmeta">${meta}</div></div>
+  <div class="wpact noprint"><div class="wpst">${stChip(ref)} ${isaL(w.isa)}</div><div class="row">${can('edit')?(it.custom?`<button class="btn d sm" type="button" data-v4act="catdel" data-ref="${esc(ref)}">نقل إلى سلة المحذوفات</button>`:`<button class="btn g sm" type="button" data-v4act="catex" data-ref="${esc(ref)}">${ex?'إعادة إدراج الورقة':'استبعاد من الارتباط'}</button>`):''}<button class="btn g sm" type="button" data-act="wpxlsx" data-ref="${esc(ref)}">⤓ Excel</button><button class="btn g sm" type="button" data-act="print">🖨 طباعة</button></div></div></div>
+  ${ex?'<div class="note bad">هذه الورقة مستبعدة من الارتباط ومفصولة عن الروابط والتقدم. أعد إدراجها لتفعيل ربطها من جديد.</div>':''}
+  <div class="wpobj"><label class="fl">الهدف</label>${edc('wp.'+ref+'.h.obj',{dv:defs.obj||'',label:'الهدف',ph:'—'})}</div>
+  <details class="wpx"${xFilled?' open':''}><summary>بيانات إضافية (التأكيدات، المخاطر، المجتمع، العينة، المستندات)</summary><div class="wph">${XK.includes('acct')?'':`<div><label class="fl">${HDRAR.acct}</label>${edc('wp.'+ref+'.h.acct',{dv:defs.acct||'',label:HDRAR.acct,ph:'—'})}</div>`}${xHtml}</div></details></div>
+  <details class="wpx wpap" id="wp-ap"><summary>الاعتماد والجاهزية</summary><div data-block="ap|wp:${esc(ref)}">${apHTML({t:'wp',id:ref})}</div>${typeof rdyPanel==='function'?rdyPanel(it):''}</details>
+  ${CUR.lock?'<p class="note ok noprint">🔒 هذه الورقة معتمدة ومقفلة للتعديل. يمكن إعادة فتحها بمبرر موثق.</p>':''}
+  <div class="wpbody">${ctBody(it,opt)}</div>
+  ${typeof excBlock==='function'?excBlock(it):''}<h3>الاستنتاج (Conclusion)</h3>${edc('wp.'+ref+'.t.cc',{label:'الاستنتاج',ph:'بناءً على العمل المنفذ والموثق، الاستنتاج بشأن هذا البند/المجال…'})}
+  <details class="wpx"><summary>ملاحظات المراجِع</summary>${edc('wp.'+ref+'.t.rn',{label:'ملاحظات المراجع',ph:'—'})}</details>
+  <details class="wpx" id="wp-cm"><summary>التعليقات</summary><div data-block="cm|${esc(ref)}">${cmHTML(ref)}</div></details>
+  <details class="wpx" id="wp-sg"><summary>التوقيعات</summary><div class="sgn">${signBox(ref,'prep','أعدها (المعدّ)','edit')}${signBox(ref,'rev','راجعها (المراجع الأول)','review')}${signBox(ref,'part','الشريك','partner')}</div></details>
+  <details class="wpx" id="wp-att"><summary>المرفقات</summary><div data-block="att|${esc(ref)}">${attHTML(ref)}</div></details>
+  <details class="wpx" id="wp-lk"><summary>الروابط مع أوراق العمل الأخرى</summary><div data-block="lk|${esc(ref)}">${linksHTML(ref)}</div></details>`}
 
-const V_wp0=V.wp;
-V.wp=function(ref){let it=CT.items[ref];if(it)return ctPage(it);const c=CT.leg[ref];if(c&&CT.items[c]&&WP[ref]&&!WP[ref].custom){return `<p class="note noprint">📌 الورقة <b>${esc(ref)} ${esc(WP[ref].ar)}</b> دُمجت ضمن الورقة ${wpL(c)} — القسم مفتوح أدناه.</p>`+ctPage(CT.items[c],{leg:ref})}
+ const V_wp0=V.wp;
+V.wp=function(ref){let it=CT.items[ref];if(it)return ctPage(it);
+ if(CT.retired&&CT.retired[ref]){const x=CT.retired[ref];return `<div class="card"><h1>${esc(ref)} — ${esc(WP[ref]?WP[ref].ar:'')}</h1><p class="note">أُلغيت هذه الورقة ضمن تبسيط البرنامج: ${esc(x.why)}.${x.host&&CT.items[x.host]?` <a class="btn o sm" href="${L('wp/'+encodeURIComponent(x.host))}">فتح ${esc(CT.items[x.host].disp)} — ${esc(CT.items[x.host].ar)}</a>`:''}</p></div>`}const c=CT.leg[ref];if(c&&CT.items[c]&&WP[ref]&&!WP[ref].custom){return `<p class="note noprint">📌 الورقة <b>${esc(ref)} ${esc(WP[ref].ar)}</b> دُمجت ضمن الورقة ${wpL(c)} — القسم مفتوح أدناه.</p>`+ctPage(CT.items[c],{leg:ref})}
  return V_wp0(ref)};
 
 /* ---------- actions: exclude / restore / delete / create ---------- */
@@ -7190,7 +7294,7 @@ const mainItem=a=>CT.items[a.main];
 const areaItemOf=(a,kind)=>a.items.map(r=>CT.items[r]).find(x=>x.kind===kind);
 
 /* ---------- A500 materiality ---------- */
-XP.mat=(it,p,ref)=>`<div class="note">تُحتسب الأهمية النسبية مرة واحدة هنا وتنتقل تلقائيًا إلى ترويسة كل ورقة وحدود الإجراءات التحليلية وحاسبات العينات وتقييم التحريفات. أي تعديل يُسجَّل في سجل التغييرات ويُنبّه إلى إعادة احتساب العينات.</div>`+matHTML(ref);
+XP.mat=(it,p,ref)=>matHTML(ref);
 
 /* ---------- A110 financial groupings ---------- */
 XP.groupings=()=>{if(!TBSTORE.ready())return noTB();const agg=new Map();let un=0,unB=0;const adj=tbAdjMap(CUR.eng);
@@ -7737,9 +7841,9 @@ function qryTable(rows){if(!rows.length)return'<p class="mut">لا توجد اس
  return `<div class="tw"><table><thead><tr><th>الورقة</th><th>الاستفسار</th><th>موجّه إلى</th><th>الاستحقاق</th><th>الحالة</th><th>الرد / المرجع</th></tr></thead><tbody>${rows.map(o=>{const it=CT.items[o.ref];const b='wp.'+o.ref+'.cg.'+o.gid+'.v.'+o.rid+'.';
   return `<tr><td>${it?`<a class="wpl" href="${L('wp/'+encodeURIComponent(o.ref))}" title="${esc(it.ar)}">${esc(it.disp)}</a>`:esc(o.ref)}</td><td class="tx">${esc(o.q||'')}</td><td>${esc(o.to||'')}</td><td>${esc(o.due||'')}</td><td><select class="st" data-k="${esc(b+'st')}" data-dv="" aria-label="الحالة"${RO()?' disabled':''}>${['','مفتوح','تم الرد','تم الاستلام جزئيًا','مغلق'].map(s=>`<option${(o.st||'')===s?' selected':''}>${s}</option>`).join('')}</select></td><td>${esc(o.r||'')}</td></tr>`}).join('')}</tbody></table></div>`}
 V.queries=function(){const all=queriesAll();const open=all.filter(qryOpen),closed=all.filter(o=>!qryOpen(o));
- return `<h1>الاستفسارات</h1><p class="sub">تجميع كل الاستفسارات المسجّلة في أوراق «استفسار» (Q) عبر الارتباط؛ تُحدَّث الحالة من هنا أو من الورقة نفسها.</p>
+ return `<h1>الاستفسارات</h1><p class="sub">كل استفسارات الارتباط في مكان واحد؛ سجّل استفسارًا جديدًا من الجدول أسفل الصفحة وحدّث حالته من هنا.</p>
  <h2>مفتوحة <span class="cnt">${open.length}</span></h2>${qryTable(open)}<h2>مغلقة <span class="cnt">${closed.length}</span></h2>${qryTable(closed)}
- <p class="mut small">لإضافة استفسار افتح ورقة الاستفسار من المجال المعني (مثل 1-101Q) أو A355Q لقائمة المتطلبات العامة.</p>`};
+ <h2>إضافة استفسار</h2>${qryHTML('A355Q','gen')}`};
 V.hub=function(){return `<h1>مركز التحليلات (Analytics Hub)</h1><p class="sub">نسب مالية وتحليل أفقي ورأسي وDuPont وفروق جوهرية — مرتبطة بمخاطر المجالات وأوراق العمل. مبنية على الميزان المبوَّب بعد التسويات.</p>${fsUnNote()}<div class="anhub">${anHubHTML()}</div>`};
 V.map=function(){const tree=ctTree();return `<h1>خريطة الارتباط</h1><p class="sub">نظرة شاملة على الأقسام السبعة وتقدم كل مجموعة؛ اضغط أي ورقة للانتقال.</p>
  ${tree.map(s=>{const refs=[];for(const g of s.groups){refs.push(...(g.items||[]));for(const a of (g.areas||[]))refs.push(a.main)}const P=catProg(refs);
@@ -7786,10 +7890,13 @@ function catProg(refs){let t=0,d=0,rv=0,pg=0;for(const r of refs){if(!CT.items[r
 const SEC_LBL={main:'الإجراءات وتقييم المخاطر والاستجابة',est:'التقديرات المحاسبية',query:'الاستفسارات',an:'الإجراءات التحليلية الجوهرية',tod:'العينات واختبارات التفاصيل'};
 function ctSecLabel(it){return SEC_LBL[it.kind]||it.ar}
 function ctBody(it,opt){opt=opt||{};if(!it.area||it.kind!=='main')return ctBody0(it,opt);
- const a=CT.areaBy[it.area];const secs=a.items.map(r=>CT.items[r]).filter(x=>x&&!ctOff(x.ref));
- const chips=`<nav class="wpsecnav noprint" aria-label="أقسام الورقة">${secs.map(x=>`<a href="#" data-v4act="wpsec" data-sec="${esc(x.ref)}">${esc(ctSecLabel(x))}</a>`).join('')}</nav>`;
- return chips+secs.map((x,i)=>`<section class="wpsec" id="sec-${esc(x.ref)}"><h2 class="wpsech"><span class="ref">${esc(x.disp)}</span> ${esc(ctSecLabel(x))}${x.kind!=='main'?` <a class="btn g sm noprint" href="#" data-v4act="wpsec" data-sec="${esc(it.ref)}">⬆ أعلى</a>`:''}</h2>${ctBody0(x,x.ref===opt.focus?{leg:opt.leg}:{})}</section>`).join('')}
-document.addEventListener('click',e=>{const b=e.target instanceof Element&&e.target.closest('[data-v4act=wpsec]');if(!b)return;e.preventDefault();const el=document.getElementById('sec-'+b.dataset.sec);if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1400)}});
+  const a=CT.areaBy[it.area];const secs=a.items.map(r=>CT.items[r]).filter(x=>x&&!ctOff(x.ref));
+  /* v7 · one section at a time (tabs) instead of one very long page */
+  const act=(opt.focus&&secs.some(x=>x.ref===opt.focus))?opt.focus:(CT.tab&&CT.tab.m===it.ref&&secs.some(x=>x.ref===CT.tab.s)?CT.tab.s:(secs[0]||{}).ref);
+  const chips=`<nav class="wpsecnav noprint" role="tablist" aria-label="أقسام الورقة">${secs.map(x=>`<a href="${L('wp/'+encodeURIComponent(x.ref))}" role="tab" class="${x.ref===act?'on':''}" data-v4act="wpsec" data-sec="${esc(x.ref)}">${esc(ctSecLabel(x))}</a>`).join('')}</nav>`;
+  return `<div class="wptabs" data-main="${esc(it.ref)}">`+chips+secs.map(x=>`<section class="wpsec${x.ref===act?' on':''}" id="sec-${esc(x.ref)}"><h2 class="wpsech"><span class="ref">${esc(x.disp)}</span> ${esc(ctSecLabel(x))}</h2>${ctBody0(x,x.ref===opt.focus?{leg:opt.leg}:{})}</section>`).join('')+`</div>`}
+function ctShowSec(ref){const el=document.getElementById('sec-'+ref);if(!el)return null;const box=el.closest('.wptabs');if(box){CT.tab={m:box.dataset.main,s:ref};box.querySelectorAll(':scope>.wpsec').forEach(x=>x.classList.toggle('on',x===el));box.querySelectorAll(':scope>.wpsecnav a').forEach(x=>x.classList.toggle('on',x.dataset.sec===ref))}return el}
+document.addEventListener('click',e=>{const b=e.target instanceof Element&&e.target.closest('[data-v4act=wpsec]');if(!b)return;e.preventDefault();const el=ctShowSec(b.dataset.sec);if(el&&!b.closest('.wpsecnav'))el.scrollIntoView({behavior:'smooth',block:'start'})});
 const V_wp1=V.wp;
 V.wp=function(ref){const it=CT.items[ref];if(it&&it.area&&it.kind!=='main'){const m=CT.areaBy[it.area].main;if(CT.items[m]){CT.focus=ref;return ctPage(CT.items[m],{focus:ref})}}
  const c=CT.leg[ref];if(c&&CT.items[c]&&!CT.items[ref]&&WP[ref]&&!WP[ref].custom){const ci=CT.items[c];if(ci.area&&ci.kind!=='main'){const m=CT.areaBy[ci.area].main;CT.focus=c;return `<p class="note noprint">📌 الورقة <b>${esc(ref)} ${esc(WP[ref].ar)}</b> دُمجت ضمن الورقة ${wpL(m)} — القسم مفتوح أدناه.</p>`+ctPage(CT.items[m],{leg:ref,focus:c})}}
@@ -7925,6 +8032,18 @@ document.addEventListener('meap:routed',()=>{});
 /* ===== 99_debug.js ===== */
 /* test hook: exposes internals only when localStorage meap.debug=1 */
 try{if(localStorage.getItem('meap.debug')==='1'){window.__V4={get CUR(){return CUR},CSUG,clsOf,clsResolve,TBSTORE,tbMapOf,G,CT,XP,ctTree,wpSt4,catProg,PROCS,SRCN,RISKS,WP:typeof WP!=='undefined'?WP:null,A,V,BLOCKS}}}catch(e){/* storage blocked */}
+;
+/* MEAP · v7 · Simplified worksheet UX helpers (collapsible sections, tabs reveal, print) */
+/* open every collapsed <details> / hidden tab that contains the element, so anchors and jump links always land on visible content */
+function revealFor(el){for(let n=el;n&&n!==document.body;n=n.parentElement){if(n.tagName==='DETAILS')n.open=true;if(n.classList&&n.classList.contains('wpsec')&&/^sec-/.test(n.id)&&typeof ctShowSec==='function')ctShowSec(n.id.slice(4))}}
+document.addEventListener('click',e=>{const t=e.target instanceof Element?e.target:null;if(!t)return;
+  const j=t.closest('[data-jump]');if(j){const el=document.getElementById(j.dataset.jump);if(el)revealFor(el)}
+  const a=t.closest('a[href^="#"]:not([href^="#/"])');if(a){const id=a.getAttribute('href').slice(1);const el=id&&document.getElementById(id);if(el)revealFor(el)}},true);
+document.addEventListener('meap:routed',()=>{const h=decodeURIComponent((location.hash.match(/#\/e\/[^#]*#(.+)$/)||[])[1]||'');if(h){const el=document.getElementById(h);if(el)revealFor(el)}});
+/* printing must show everything */
+let _prDet=[];
+window.addEventListener('beforeprint',()=>{document.body.classList.add('print-all');_prDet=[...document.querySelectorAll('#main details:not([open])')];_prDet.forEach(d=>d.open=true)});
+window.addEventListener('afterprint',()=>{document.body.classList.remove('print-all');_prDet.forEach(d=>d.open=false);_prDet=[]});
 ;
 /* MEAP · Entry point — runs after every other script has been loaded */
 boot();

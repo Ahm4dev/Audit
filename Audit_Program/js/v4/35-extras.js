@@ -12,7 +12,7 @@ const mainItem=a=>CT.items[a.main];
 const areaItemOf=(a,kind)=>a.items.map(r=>CT.items[r]).find(x=>x.kind===kind);
 
 /* ---------- A500 materiality ---------- */
-XP.mat=(it,p,ref)=>`<div class="note">تُحتسب الأهمية النسبية مرة واحدة هنا وتنتقل تلقائيًا إلى ترويسة كل ورقة وحدود الإجراءات التحليلية وحاسبات العينات وتقييم التحريفات. أي تعديل يُسجَّل في سجل التغييرات ويُنبّه إلى إعادة احتساب العينات.</div>`+matHTML(ref);
+XP.mat=(it,p,ref)=>matHTML(ref);
 
 /* ---------- A110 financial groupings ---------- */
 XP.groupings=()=>{if(!TBSTORE.ready())return noTB();const agg=new Map();let un=0,unB=0;const adj=tbAdjMap(CUR.eng);

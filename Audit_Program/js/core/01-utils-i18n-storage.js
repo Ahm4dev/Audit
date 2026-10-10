@@ -18,7 +18,7 @@ const fmtT=ms=>{const d=new Date(ms);return `${pad2(d.getHours())}:${pad2(d.getM
 function rndHex(n){if(n>=32&&crypto.randomUUID)return crypto.randomUUID().replace(/-/g,'').slice(0,n);const a=new Uint8Array(Math.ceil(n/2));crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('').slice(0,n)}
 function rnd36(n){const a=new Uint8Array(n);crypto.getRandomValues(a);const c='0123456789abcdefghijklmnopqrstuvwxyz';let s='';for(const b of a)s+=c[b%36];return s}
 const uid=p=>(p||'')+Date.now().toString(36)+rnd36(6);
-const num=v=>{const n=parseFloat(String(v==null?'':v).replace(/[,\s٬]/g,''));return isFinite(n)?n:0};
+const num=v=>{const n=parseFloat(String(v==null?'':v).replace(/[\u0660-\u0669]/g,d=>d.charCodeAt(0)-0x660).replace(/[\u06F0-\u06F9]/g,d=>d.charCodeAt(0)-0x6F0).replace(/٫/g,'.').replace(/[,\s٬،]/g,''));return isFinite(n)?n:0};
 const fmtN=v=>isFinite(v)&&v?Math.round(v).toLocaleString('en-US'):'-';
 const fmtSize=b=>b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));

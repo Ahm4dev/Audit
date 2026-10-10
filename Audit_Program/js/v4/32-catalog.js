@@ -19,7 +19,7 @@ function ctBuild(){if(CT.ready)return;CT.ready=true;
  for(const ln of CAT_TREE_SRC.split('\n')){const l=ln.trim();if(!l)continue;const p=l.split('|');
   if(p[0]==='@S'){cs=S(p[1]);cg=null;continue}
   if(p[0]==='@G'){cg={id:p[1],en:p[2],ar:p[3],items:[],sec:cs.id};cs.groups.push(cg);CT.grpMeta[cg.id]=cg;continue}
-  const it=ctAdd({disp:p[0],en:p[1],ar:p[2],sec:cs.id,grp:cg.id,ty:ctTypes(p[3])});cg.items.push(it.ref)}
+  if(CAT_DROP.has(p[0]))continue;const it=ctAdd({disp:p[0],en:p[1],ar:p[2],sec:cs.id,grp:cg.id,ty:ctTypes(p[3])});cg.items.push(it.ref)}
  /* Plans and Procedures: super-groups → areas → papers */
  const pp=S('PP');pp.groups=[];const sg={};
  for(const [id,ar,en] of CAT_SUPER){const g={id:'PP-'+id,en,ar,items:[],areas:[],sec:'PP'};sg[id]=g;pp.groups.push(g);CT.grpMeta[g.id]=g}
@@ -29,8 +29,7 @@ function ctBuild(){if(CT.ready)return;CT.ready=true;
   const mk=(disp,en2,ar2,ty,kind)=>{const it=ctAdd({disp,en:en2,ar:ar2,sec:'PP',grp:'PP-'+sup,area:id,ty,kind});ar_.items.push(it.ref);return it};
   ar_.main=cref(base);
   mk(base,en+' — Audit procedures and risk response',ar+' — إجراءات المراجعة وتقييم المخاطر والاستجابة',[{t:'X',p:'a101'}],'main');
-  mk(base+'E',en+' — Accounting estimate — Risk assessment and response',ar+' — التقديرات المحاسبية: تقييم المخاطر والاستجابة',[{t:'X',p:'a101e'}],'est');
-  mk(base+'Q',en+' — Query',ar+' — استفسار',[{t:'X',p:'a101q'}],'query');
+  if(!CAT_NOEST.has(id))mk(base+'E',en+' — Accounting estimate — Risk assessment and response',ar+' — التقديرات المحاسبية: تقييم المخاطر والاستجابة',[{t:'X',p:'a101e'}],'est');
   const sp=[];if(spec&&spec!=='new')for(const s of spec.split(';')){const q=s.split(':');if(q.length<5)continue;sp.push({key:q[0],ref:q[1],en:q[2],ar:q[3],ty:ctTypes(q.slice(4).join(':'))})}
   for(const s of sp)if(/^\d+$/.test(s.key))mk(s.ref,s.en,s.ar,s.ty,'special');
   mk(isCOS?pre+'.102':pre+'.120','Worksheet - '+en+' - Substantive analytical procedures','ورقة عمل — '+ar+' — الإجراءات التحليلية الجوهرية',[{t:'X',p:'a120'}],'an');
@@ -39,7 +38,8 @@ function ctBuild(){if(CT.ready)return;CT.ready=true;
   CT.areas.push(ar_);CT.areaBy[id]=ar_;sg[sup].areas.push(ar_)}
  /* legacy claims: tree first, then the account lists of each area, then the remaining legacy papers by letter */
  for(const ref of CT.order){const it=CT.items[ref];for(const t of it.ty)if(t.t==='L')t.p.split(',').forEach(r=>{r=r.trim();if(r&&!CT.leg[r])CT.leg[r]=ref})}
- for(const a of CT.areas){const tod=a.items[a.items.length-1];const todItem=a.items.map(r=>CT.items[r]).filter(x=>x.kind==='tod')[0];
+ CT.retired={};for(const [rs,host,why] of CAT_RETIRE)rs.split(' ').forEach(r=>{if(!CT.leg[r]){CT.leg[r]='RETIRED';CT.retired[r]={host,why}}});
+  for(const a of CT.areas){const tod=a.items[a.items.length-1];const todItem=a.items.map(r=>CT.items[r]).filter(x=>x.kind==='tod')[0];
   for(const ln of a.lines){const ac=AC[ln];if(!ac)continue;for(const r of split(ac.wps)){if(!WP[r]||CT.leg[r])continue;CT.leg[r]=todItem.ref;a.legacy.push(r);todItem.legacyExtra=(todItem.legacyExtra||[]);todItem.legacyExtra.push(r)}}}
  const sup=pp.groups.length;const sg2={id:'PP-sup',en:'Supplementary library papers',ar:'أوراق مكمّلة من المكتبة (مدمجة)',items:[],areas:[],sec:'PP'};CT.grpMeta[sg2.id]=sg2;
  const byL={};for(const w of W){if(CT.leg[w[0]])continue;(byL[w[0].split('-')[0]]=byL[w[0].split('-')[0]]||[]).push(w[0])}
@@ -135,26 +135,30 @@ function ctAutoObj(it,a){try{const XO={"A105": "تجميع الأوراق الم
 function ctHdrDefaults(it,ref){const w=WP[ref];const a=it.area?CT.areaBy[it.area]:null;return{ref:it.disp,client:CUR.company.name,period:G('eng.period',G('eng.year','')),area:a?a.ar:(CT.secs.find(s=>s.id===it.sec)||{ar:''}).ar,acct:a?a.lines.map(l=>AC[l]?AC[l].n:l).join('، '):'',obj:w.ob||it.ob||ctAutoObj(it,a)}}
 const HDRAR={ref:'مرجع الورقة',client:'العميل',period:'الفترة',area:'المجال',acct:'الحساب / العملية',obj:'الهدف',asr:'التأكيدات المعنية',risk:'المخاطر المعنية',pop:'المجتمع',smeth:'طريقة العينة',ssize:'حجم العينة',src:'المستندات المصدرية',xref:'المراجع التبادلية'};
 function ctPage(it,opt){opt=opt||{};const ref=it.ref,w=WP[ref];PRES.cur.wp=ref;CUR.lock=apFinal({t:'wp',id:ref});const ex=ctOff(ref);const defs=ctHdrDefaults(it,ref);const sec=CT.secs.find(s=>s.id===it.sec)||{ar:''};
- const hdrKeys=['ref','client','period','area','acct','obj','asr','risk','pop','smeth','ssize','src','xref'];
- const auto=k=>({ref:1,client:1,period:1,area:1}[k]);
- const hdr=hdrKeys.map(k=>`<div><label class="fl">${HDRAR[k]}</label>${auto(k)?`<div class="ed ro">${esc(defs[k])}</div>`:edc('wp.'+ref+'.h.'+k,{dv:defs[k]||'',label:HDRAR[k],ph:'—'})}</div>`).join('');
- return `<div class="print-head">${esc(CUR.company.name)} · ${esc(G('eng.year',''))} · ${esc(it.disp)} ${esc(it.ar)} · طُبع بواسطة ${esc(SESSION.display)} في ${fmtDT(Date.now())}</div>
- <div class="card wpcard"><div class="wp-title"><div><div class="ref" style="font-size:1.1rem">${esc(it.disp)} <span class="mut small">· ${esc(sec.ar)}</span></div><h1 style="margin:.1rem 0">${esc(it.ar)}</h1><div class="mut small" dir="ltr" style="text-align:left">${esc(it.en)}</div></div>
- <div class="wpact noprint"><div>${stChip(ref)} ${isaL(w.isa)}</div><div class="row">${can('edit')?(it.custom?`<button class="btn d sm" type="button" data-v4act="catdel" data-ref="${esc(ref)}">نقل إلى سلة المحذوفات</button>`:`<button class="btn g sm" type="button" data-v4act="catex" data-ref="${esc(ref)}">${ex?'إعادة إدراج الورقة':'استبعاد من الارتباط'}</button>`):''}<button class="btn g sm" type="button" data-act="wpxlsx" data-ref="${esc(ref)}">⤓ Excel</button><button class="btn g sm" type="button" data-act="print">🖨 طباعة</button></div></div></div>
- ${matStrip()}
- ${ex?'<div class="note bad">هذه الورقة مستبعدة من الارتباط ومفصولة عن الروابط والتقدم. أعد إدراجها لتفعيل ربطها من جديد.</div>':''}
- <div class="wph">${hdr}</div></div>
- <div data-block="ap|wp:${esc(ref)}">${apHTML({t:'wp',id:ref})}</div>${typeof rdyPanel==='function'?rdyPanel(it):''}${CUR.lock?'<p class="note ok noprint">🔒 هذه الورقة معتمدة ومقفلة للتعديل. يمكن إعادة فتحها بمبرر موثق.</p>':''}
- <div class="wpbody">${ctBody(it,opt)}</div>
- ${typeof excBlock==='function'?excBlock(it):''}<h3>الاستنتاج (Conclusion)</h3>${edc('wp.'+ref+'.t.cc',{label:'الاستنتاج',ph:'بناءً على العمل المنفذ والموثق، الاستنتاج بشأن هذا البند/المجال…'})}
- <h3>ملاحظات المراجِع</h3>${edc('wp.'+ref+'.t.rn',{label:'ملاحظات المراجع',ph:'—'})}
- <h3>التعليقات المتسلسلة</h3><div data-block="cm|${esc(ref)}">${cmHTML(ref)}</div>
- <h3>التوقيعات</h3><div class="sgn">${signBox(ref,'prep','أعدها (المعدّ)','edit')}${signBox(ref,'rev','راجعها (المراجع الأول)','review')}${signBox(ref,'part','الشريك','partner')}</div>
- <h2 id="wp-att">المرفقات</h2><div data-block="att|${esc(ref)}">${attHTML(ref)}</div>
- <h2 id="wp-lk">الروابط مع أوراق العمل الأخرى</h2><div data-block="lk|${esc(ref)}">${linksHTML(ref)}</div>`}
+  /* v7 · compact header: identity as one meta line, objective visible, rarely-used fields collapsed */
+  const XK=['asr','risk','pop','smeth','ssize','src','xref'];
+  const xFilled=XK.some(k=>String(G('wp.'+ref+'.h.'+k,'')||'').trim());
+  const xHtml=XK.map(k=>`<div><label class="fl">${HDRAR[k]}</label>${edc('wp.'+ref+'.h.'+k,{dv:defs[k]||'',label:HDRAR[k],ph:'—'})}</div>`).join('');
+  const meta=[defs.client,defs.period,defs.area].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('<i>·</i>');
+  return `<div class="print-head">${esc(CUR.company.name)} · ${esc(G('eng.year',''))} · ${esc(it.disp)} ${esc(it.ar)} · طُبع بواسطة ${esc(SESSION.display)} في ${fmtDT(Date.now())}</div>
+  <div class="card wpcard"><div class="wp-title"><div><div class="ref">${esc(it.disp)} <span class="mut small">· ${esc(sec.ar)}</span></div><h1>${esc(it.ar)}</h1><div class="mut small en" dir="ltr">${esc(it.en)}</div><div class="wpmeta">${meta}</div></div>
+  <div class="wpact noprint"><div class="wpst">${stChip(ref)} ${isaL(w.isa)}</div><div class="row">${can('edit')?(it.custom?`<button class="btn d sm" type="button" data-v4act="catdel" data-ref="${esc(ref)}">نقل إلى سلة المحذوفات</button>`:`<button class="btn g sm" type="button" data-v4act="catex" data-ref="${esc(ref)}">${ex?'إعادة إدراج الورقة':'استبعاد من الارتباط'}</button>`):''}<button class="btn g sm" type="button" data-act="wpxlsx" data-ref="${esc(ref)}">⤓ Excel</button><button class="btn g sm" type="button" data-act="print">🖨 طباعة</button></div></div></div>
+  ${ex?'<div class="note bad">هذه الورقة مستبعدة من الارتباط ومفصولة عن الروابط والتقدم. أعد إدراجها لتفعيل ربطها من جديد.</div>':''}
+  <div class="wpobj"><label class="fl">الهدف</label>${edc('wp.'+ref+'.h.obj',{dv:defs.obj||'',label:'الهدف',ph:'—'})}</div>
+  <details class="wpx"${xFilled?' open':''}><summary>بيانات إضافية (التأكيدات، المخاطر، المجتمع، العينة، المستندات)</summary><div class="wph">${XK.includes('acct')?'':`<div><label class="fl">${HDRAR.acct}</label>${edc('wp.'+ref+'.h.acct',{dv:defs.acct||'',label:HDRAR.acct,ph:'—'})}</div>`}${xHtml}</div></details></div>
+  <details class="wpx wpap" id="wp-ap"><summary>الاعتماد والجاهزية</summary><div data-block="ap|wp:${esc(ref)}">${apHTML({t:'wp',id:ref})}</div>${typeof rdyPanel==='function'?rdyPanel(it):''}</details>
+  ${CUR.lock?'<p class="note ok noprint">🔒 هذه الورقة معتمدة ومقفلة للتعديل. يمكن إعادة فتحها بمبرر موثق.</p>':''}
+  <div class="wpbody">${ctBody(it,opt)}</div>
+  ${typeof excBlock==='function'?excBlock(it):''}<h3>الاستنتاج (Conclusion)</h3>${edc('wp.'+ref+'.t.cc',{label:'الاستنتاج',ph:'بناءً على العمل المنفذ والموثق، الاستنتاج بشأن هذا البند/المجال…'})}
+  <details class="wpx"><summary>ملاحظات المراجِع</summary>${edc('wp.'+ref+'.t.rn',{label:'ملاحظات المراجع',ph:'—'})}</details>
+  <details class="wpx" id="wp-cm"><summary>التعليقات</summary><div data-block="cm|${esc(ref)}">${cmHTML(ref)}</div></details>
+  <details class="wpx" id="wp-sg"><summary>التوقيعات</summary><div class="sgn">${signBox(ref,'prep','أعدها (المعدّ)','edit')}${signBox(ref,'rev','راجعها (المراجع الأول)','review')}${signBox(ref,'part','الشريك','partner')}</div></details>
+  <details class="wpx" id="wp-att"><summary>المرفقات</summary><div data-block="att|${esc(ref)}">${attHTML(ref)}</div></details>
+  <details class="wpx" id="wp-lk"><summary>الروابط مع أوراق العمل الأخرى</summary><div data-block="lk|${esc(ref)}">${linksHTML(ref)}</div></details>`}
 
-const V_wp0=V.wp;
-V.wp=function(ref){let it=CT.items[ref];if(it)return ctPage(it);const c=CT.leg[ref];if(c&&CT.items[c]&&WP[ref]&&!WP[ref].custom){return `<p class="note noprint">📌 الورقة <b>${esc(ref)} ${esc(WP[ref].ar)}</b> دُمجت ضمن الورقة ${wpL(c)} — القسم مفتوح أدناه.</p>`+ctPage(CT.items[c],{leg:ref})}
+ const V_wp0=V.wp;
+V.wp=function(ref){let it=CT.items[ref];if(it)return ctPage(it);
+ if(CT.retired&&CT.retired[ref]){const x=CT.retired[ref];return `<div class="card"><h1>${esc(ref)} — ${esc(WP[ref]?WP[ref].ar:'')}</h1><p class="note">أُلغيت هذه الورقة ضمن تبسيط البرنامج: ${esc(x.why)}.${x.host&&CT.items[x.host]?` <a class="btn o sm" href="${L('wp/'+encodeURIComponent(x.host))}">فتح ${esc(CT.items[x.host].disp)} — ${esc(CT.items[x.host].ar)}</a>`:''}</p></div>`}const c=CT.leg[ref];if(c&&CT.items[c]&&WP[ref]&&!WP[ref].custom){return `<p class="note noprint">📌 الورقة <b>${esc(ref)} ${esc(WP[ref].ar)}</b> دُمجت ضمن الورقة ${wpL(c)} — القسم مفتوح أدناه.</p>`+ctPage(CT.items[c],{leg:ref})}
  return V_wp0(ref)};
 
 /* ---------- actions: exclude / restore / delete / create ---------- */

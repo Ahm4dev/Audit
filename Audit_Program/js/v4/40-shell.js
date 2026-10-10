@@ -75,9 +75,9 @@ function qryTable(rows){if(!rows.length)return'<p class="mut">لا توجد اس
  return `<div class="tw"><table><thead><tr><th>الورقة</th><th>الاستفسار</th><th>موجّه إلى</th><th>الاستحقاق</th><th>الحالة</th><th>الرد / المرجع</th></tr></thead><tbody>${rows.map(o=>{const it=CT.items[o.ref];const b='wp.'+o.ref+'.cg.'+o.gid+'.v.'+o.rid+'.';
   return `<tr><td>${it?`<a class="wpl" href="${L('wp/'+encodeURIComponent(o.ref))}" title="${esc(it.ar)}">${esc(it.disp)}</a>`:esc(o.ref)}</td><td class="tx">${esc(o.q||'')}</td><td>${esc(o.to||'')}</td><td>${esc(o.due||'')}</td><td><select class="st" data-k="${esc(b+'st')}" data-dv="" aria-label="الحالة"${RO()?' disabled':''}>${['','مفتوح','تم الرد','تم الاستلام جزئيًا','مغلق'].map(s=>`<option${(o.st||'')===s?' selected':''}>${s}</option>`).join('')}</select></td><td>${esc(o.r||'')}</td></tr>`}).join('')}</tbody></table></div>`}
 V.queries=function(){const all=queriesAll();const open=all.filter(qryOpen),closed=all.filter(o=>!qryOpen(o));
- return `<h1>الاستفسارات</h1><p class="sub">تجميع كل الاستفسارات المسجّلة في أوراق «استفسار» (Q) عبر الارتباط؛ تُحدَّث الحالة من هنا أو من الورقة نفسها.</p>
+ return `<h1>الاستفسارات</h1><p class="sub">كل استفسارات الارتباط في مكان واحد؛ سجّل استفسارًا جديدًا من الجدول أسفل الصفحة وحدّث حالته من هنا.</p>
  <h2>مفتوحة <span class="cnt">${open.length}</span></h2>${qryTable(open)}<h2>مغلقة <span class="cnt">${closed.length}</span></h2>${qryTable(closed)}
- <p class="mut small">لإضافة استفسار افتح ورقة الاستفسار من المجال المعني (مثل 1-101Q) أو A355Q لقائمة المتطلبات العامة.</p>`};
+ <h2>إضافة استفسار</h2>${qryHTML('A355Q','gen')}`};
 V.hub=function(){return `<h1>مركز التحليلات (Analytics Hub)</h1><p class="sub">نسب مالية وتحليل أفقي ورأسي وDuPont وفروق جوهرية — مرتبطة بمخاطر المجالات وأوراق العمل. مبنية على الميزان المبوَّب بعد التسويات.</p>${fsUnNote()}<div class="anhub">${anHubHTML()}</div>`};
 V.map=function(){const tree=ctTree();return `<h1>خريطة الارتباط</h1><p class="sub">نظرة شاملة على الأقسام السبعة وتقدم كل مجموعة؛ اضغط أي ورقة للانتقال.</p>
  ${tree.map(s=>{const refs=[];for(const g of s.groups){refs.push(...(g.items||[]));for(const a of (g.areas||[]))refs.push(a.main)}const P=catProg(refs);
@@ -124,10 +124,13 @@ function catProg(refs){let t=0,d=0,rv=0,pg=0;for(const r of refs){if(!CT.items[r
 const SEC_LBL={main:'الإجراءات وتقييم المخاطر والاستجابة',est:'التقديرات المحاسبية',query:'الاستفسارات',an:'الإجراءات التحليلية الجوهرية',tod:'العينات واختبارات التفاصيل'};
 function ctSecLabel(it){return SEC_LBL[it.kind]||it.ar}
 function ctBody(it,opt){opt=opt||{};if(!it.area||it.kind!=='main')return ctBody0(it,opt);
- const a=CT.areaBy[it.area];const secs=a.items.map(r=>CT.items[r]).filter(x=>x&&!ctOff(x.ref));
- const chips=`<nav class="wpsecnav noprint" aria-label="أقسام الورقة">${secs.map(x=>`<a href="#" data-v4act="wpsec" data-sec="${esc(x.ref)}">${esc(ctSecLabel(x))}</a>`).join('')}</nav>`;
- return chips+secs.map((x,i)=>`<section class="wpsec" id="sec-${esc(x.ref)}"><h2 class="wpsech"><span class="ref">${esc(x.disp)}</span> ${esc(ctSecLabel(x))}${x.kind!=='main'?` <a class="btn g sm noprint" href="#" data-v4act="wpsec" data-sec="${esc(it.ref)}">⬆ أعلى</a>`:''}</h2>${ctBody0(x,x.ref===opt.focus?{leg:opt.leg}:{})}</section>`).join('')}
-document.addEventListener('click',e=>{const b=e.target instanceof Element&&e.target.closest('[data-v4act=wpsec]');if(!b)return;e.preventDefault();const el=document.getElementById('sec-'+b.dataset.sec);if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1400)}});
+  const a=CT.areaBy[it.area];const secs=a.items.map(r=>CT.items[r]).filter(x=>x&&!ctOff(x.ref));
+  /* v7 · one section at a time (tabs) instead of one very long page */
+  const act=(opt.focus&&secs.some(x=>x.ref===opt.focus))?opt.focus:(CT.tab&&CT.tab.m===it.ref&&secs.some(x=>x.ref===CT.tab.s)?CT.tab.s:(secs[0]||{}).ref);
+  const chips=`<nav class="wpsecnav noprint" role="tablist" aria-label="أقسام الورقة">${secs.map(x=>`<a href="${L('wp/'+encodeURIComponent(x.ref))}" role="tab" class="${x.ref===act?'on':''}" data-v4act="wpsec" data-sec="${esc(x.ref)}">${esc(ctSecLabel(x))}</a>`).join('')}</nav>`;
+  return `<div class="wptabs" data-main="${esc(it.ref)}">`+chips+secs.map(x=>`<section class="wpsec${x.ref===act?' on':''}" id="sec-${esc(x.ref)}"><h2 class="wpsech"><span class="ref">${esc(x.disp)}</span> ${esc(ctSecLabel(x))}</h2>${ctBody0(x,x.ref===opt.focus?{leg:opt.leg}:{})}</section>`).join('')+`</div>`}
+function ctShowSec(ref){const el=document.getElementById('sec-'+ref);if(!el)return null;const box=el.closest('.wptabs');if(box){CT.tab={m:box.dataset.main,s:ref};box.querySelectorAll(':scope>.wpsec').forEach(x=>x.classList.toggle('on',x===el));box.querySelectorAll(':scope>.wpsecnav a').forEach(x=>x.classList.toggle('on',x.dataset.sec===ref))}return el}
+document.addEventListener('click',e=>{const b=e.target instanceof Element&&e.target.closest('[data-v4act=wpsec]');if(!b)return;e.preventDefault();const el=ctShowSec(b.dataset.sec);if(el&&!b.closest('.wpsecnav'))el.scrollIntoView({behavior:'smooth',block:'start'})});
 const V_wp1=V.wp;
 V.wp=function(ref){const it=CT.items[ref];if(it&&it.area&&it.kind!=='main'){const m=CT.areaBy[it.area].main;if(CT.items[m]){CT.focus=ref;return ctPage(CT.items[m],{focus:ref})}}
  const c=CT.leg[ref];if(c&&CT.items[c]&&!CT.items[ref]&&WP[ref]&&!WP[ref].custom){const ci=CT.items[c];if(ci.area&&ci.kind!=='main'){const m=CT.areaBy[ci.area].main;CT.focus=c;return `<p class="note noprint">📌 الورقة <b>${esc(ref)} ${esc(WP[ref].ar)}</b> دُمجت ضمن الورقة ${wpL(m)} — القسم مفتوح أدناه.</p>`+ctPage(CT.items[m],{leg:ref,focus:c})}}
