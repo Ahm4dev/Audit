@@ -1,7 +1,0 @@
-/* MEAP · Engagement tabs */
-/* ---------- engagement tabs (sticky, wrap — never scroll) ---------- */
-.etabs{display:flex;flex-wrap:wrap;gap:.25rem;padding:.35rem var(--pad);background:var(--card);border-bottom:1px solid var(--bd);z-index:45}
-@media (min-width:768px){.etabs{position:sticky;top:var(--hdr-h)}}
-.etabs a{display:inline-flex;align-items:center;gap:.3rem;min-height:calc(var(--tap) - 4px);padding:.25rem .75rem;border-radius:999px;color:var(--tx);font-size:.88rem;border:1px solid transparent}
-.etabs a:hover{background:var(--soft);text-decoration:none}
-.etabs a[aria-current=page]{background:var(--chip);color:var(--pri2);font-weight:700;border-color:var(--bd)}
