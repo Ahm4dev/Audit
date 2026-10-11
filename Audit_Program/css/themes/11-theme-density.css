@@ -1,0 +1,12 @@
+/* MEAP · Theme robustness, contrast, density */
+/* ---------- v3: theme robustness, contrast, density ---------- */
+:root[data-theme=light]{color-scheme:light}
+@media (prefers-contrast:more){:root{--mut:#3b4657;--bd:#8c99ab;--bd2:#6d7b90}:root[data-eff=dark]{--mut:#c9d3e3;--bd:#5d6c86;--bd2:#7686a2}.btn,.ib,.in,.sel,.ta,select.st{border-width:2px}}
+@media (forced-colors:active){.top,.etabs,.card,.dlg,.toast,.b,.btn,.ib,.save,.dz{forced-color-adjust:auto;border:1px solid CanvasText}.b.bad,.b.ok,.b.M{border-style:double}:focus-visible{outline:3px solid Highlight}.ib,.btn{color:ButtonText;background:ButtonFace}}
+:root[data-density=compact]{--pad:clamp(.4rem,1vw,.8rem);--gap:clamp(.35rem,.8vw,.7rem)}
+:root[data-density=compact] body{line-height:1.5}
+:root[data-density=compact] td,:root[data-density=compact] th{padding-block:.2rem}
+:root[data-density=compact] .card{padding:.6rem .75rem}
+.theme-btn{font-size:1.05rem}
+.gate-tools{display:flex;gap:.4rem;justify-content:flex-end;flex-wrap:wrap;margin-bottom:.4rem}
+.gate-tools .ib{color:var(--tx);border-color:var(--bd2);background:var(--soft)}
