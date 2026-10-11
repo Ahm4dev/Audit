@@ -1,0 +1,72 @@
+/* MEAP · v7 · Calmer, simpler worksheet design (screen only; loaded last) */
+@media screen{
+:root{--sp:1rem;--bd:#e3e8f0;--bd2:#d3dbe7;--soft:#f6f8fb;--sh:0 1px 2px rgba(15,32,56,.04)}
+
+/* ---- worksheet header: one quiet card ---- */
+.wpcard{padding:1rem 1.2rem;box-shadow:var(--sh)}
+.wp-title{border-bottom:0!important;padding-bottom:0!important;margin-bottom:.2rem!important;gap:1rem}
+.wp-title .ref{font-size:.85rem!important;color:var(--mut);font-weight:600;margin-bottom:.1rem}
+.wp-title h1{font-size:1.45rem;line-height:1.35;margin:.1rem 0 .15rem}
+.wp-title .en{font-size:.78rem;opacity:.75}
+.wpmeta{display:flex;flex-wrap:wrap;gap:.1rem .5rem;font-size:.84rem;color:var(--mut);margin-top:.35rem}
+.wpmeta i{opacity:.4;font-style:normal}
+.wpact{display:flex;flex-direction:column;align-items:flex-end;gap:.5rem}
+.wpact .wpst{display:flex;flex-wrap:wrap;gap:.3rem;justify-content:flex-end}
+.wpobj{margin-top:.7rem;padding-top:.7rem;border-top:1px solid var(--bd)}
+.wpobj .fl,.wph .fl{display:block;font-size:.74rem;color:var(--mut);font-weight:600;margin-bottom:.15rem}
+.wpobj .ed,.wph .ed{border-color:transparent;background:var(--soft)}
+.wph{margin-top:.6rem;gap:.6rem 1rem}
+
+/* ---- collapsible secondary blocks ---- */
+details.wpx{border:1px solid var(--bd);border-radius:var(--rs,10px);background:var(--card,#fff);margin:.55rem 0;padding:0}
+details.wpx>summary{cursor:pointer;list-style:none;padding:.6rem .95rem;font-weight:600;font-size:.92rem;display:flex;align-items:center;gap:.5rem;color:var(--ink-hi,#12335a);user-select:none}
+details.wpx>summary::-webkit-details-marker{display:none}
+details.wpx>summary::before{content:"‹";display:inline-block;transition:transform .15s;opacity:.55;font-size:1.1rem;line-height:1}
+details.wpx[open]>summary::before{transform:rotate(-90deg)}
+details.wpx>summary:hover{background:var(--soft);border-radius:var(--rs,10px)}
+details.wpx[open]>summary{border-bottom:1px solid var(--bd);border-radius:var(--rs,10px) var(--rs,10px) 0 0}
+details.wpx>*:not(summary){margin-left:.95rem;margin-right:.95rem}
+details.wpx>*:last-child{margin-bottom:.8rem}
+details.wpx>summary+*{margin-top:.7rem}
+details.wpap>.card{box-shadow:none;border:0;padding:0;margin-top:.5rem}
+
+/* ---- section tabs (area papers) ---- */
+.wptabs>.wpsecnav{position:sticky;display:flex;gap:.2rem;padding:.35rem 0 0;margin:.8rem 0 0;background:var(--bg);border-bottom:1px solid var(--bd2)}
+.wptabs>.wpsecnav a{border:0;border-bottom:3px solid transparent;border-radius:0;background:none;padding:.5rem .9rem;color:var(--mut);font-weight:600}
+.wptabs>.wpsecnav a:hover{background:none;color:var(--ink-hi);border-color:var(--bd2)}
+.wptabs>.wpsecnav a.on{color:var(--btn);border-bottom-color:var(--btn)}
+.wptabs>.wpsec{display:none;margin-top:1rem}
+.wptabs>.wpsec.on{display:block}
+.wpsech{font-size:1.05rem!important;border-bottom:0!important;margin-bottom:.4rem}
+
+/* ---- tables & chips: fewer lines, fewer colours ---- */
+.tw table{font-size:.88rem}
+.tw thead th{background:var(--soft);font-weight:600;font-size:.8rem;color:var(--mut);border-bottom:1px solid var(--bd2)}
+.tw td,.tw th{border-color:var(--bd)}
+.tw tbody tr:hover{background:var(--soft)}
+.tw td .b.isa,.tw td .isa-chips{display:none}
+.card{box-shadow:var(--sh);border-color:var(--bd)}
+h2{font-size:1.15rem}h3{font-size:1rem;margin:1.1rem 0 .4rem}
+.note{font-size:.88rem}
+.sgn{gap:.6rem}
+
+/* ---- materiality (A500) ---- */
+.v4mat .v4res{margin-top:.2rem}
+.v4mat .v4res>div{background:var(--soft);border-color:var(--bd)}
+.v4mat h3{margin-top:1.3rem;padding-bottom:.3rem;border-bottom:1px solid var(--bd)}
+.v4mat .mtb td,.v4mat .mtb th{padding:.35rem .6rem}
+.v4mat .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:.6rem 1rem;margin:.6rem 0}
+.v4mat .fgrid label{font-size:.8rem;color:var(--mut);font-weight:600}
+.v4mat .fgrid .in,.v4mat .fgrid .sel{width:100%;margin-top:.2rem}
+.v4mat .v4chk{display:grid;gap:.35rem;margin:.5rem 0}
+}
+@media screen and (max-width:640px){
+.wp-title{flex-direction:column}.wpact{align-items:stretch}.wpact .wpst{justify-content:flex-start}
+.wptabs>.wpsecnav{overflow-x:auto}
+}
+/* print: show everything, no chrome */
+@media print{
+.wptabs>.wpsec{display:block!important}
+details.wpx{border:0}details.wpx>summary::before{display:none}
+details.wpx>*:not(summary){display:block}
+}
