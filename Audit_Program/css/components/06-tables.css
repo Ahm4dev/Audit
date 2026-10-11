@@ -1,0 +1,19 @@
+/* MEAP · Tables (responsive stacked cards) */
+/* ---------- tables: never scroll; become stacked cards when they don't fit ---------- */
+.tw{border:1px solid var(--bd);border-radius:var(--rs);background:var(--card);margin:.5rem 0}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:.86rem}
+th{position:sticky;top:var(--stick);z-index:2;background:var(--th);text-align:start;padding:.45rem .55rem;border-bottom:1px solid var(--bd);font-weight:600;vertical-align:bottom}
+td{padding:.45rem .55rem;border-bottom:1px solid var(--bd);vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:rgba(27,100,179,.04)}
+tfoot th,tfoot td{position:static;border-top:1px solid var(--bd)}
+td.sm{font-size:.8rem;color:var(--mut)}
+table.stack thead{display:none}
+table.stack,table.stack tbody,table.stack tfoot{display:block;width:100%}
+table.stack tr{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr));gap:.15rem 1rem;padding:.55rem .7rem;border-bottom:1px solid var(--bd)}
+table.stack tbody tr:last-child{border-bottom:0}
+table.stack td,table.stack th{display:block;border:0;padding:.2rem 0;position:static;background:none}
+table.stack td::before{content:attr(data-label);display:block;font-size:.72rem;font-weight:700;color:var(--mut);margin-bottom:.05rem}
+table.stack td[data-label=""]::before{display:none}
+table.stack td.tx,table.stack td.wide{grid-column:1/-1}
+table.stack td.e{min-height:2.4rem}
