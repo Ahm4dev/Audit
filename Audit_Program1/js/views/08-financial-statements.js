@@ -1,0 +1,127 @@
+/* Audit-Plus · View: Financial statements & accounts */
+
+import { hub } from '../hub.js';
+import { ASR, PT } from '../data/01-assertions-procedure-types.js';
+import { A } from '../data/05-accounts.js';
+import { CX, IND } from '../data/06-cycles-it-components.js';
+import { esc, split } from '../core/01-utils-i18n-storage.js';
+import { can } from '../core/02-auth.js';
+import { CUR, recs } from '../core/03-data-engine.js';
+import {
+  AC,
+  CTRLS,
+  CY,
+  L,
+  PROCS,
+  RISKS,
+  V,
+  WP,
+  asB,
+  bar,
+  chain,
+  ctrlTable,
+  edc,
+  isaL,
+  lvB,
+  procTable,
+  prog,
+  ptB,
+  riskTable,
+  sec,
+  wfSel,
+} from './05-indexes.js';
+
+/* ===== Financial statements & accounts ===== */
+const FSN = {
+  A: 'الأصول (Assets)',
+  L: 'الالتزامات (Liabilities)',
+  E: 'حقوق الملكية (Equity)',
+  P: 'الربح أو الخسارة (P&L)',
+  O: 'الدخل الشامل الآخر وحقوق الملكية (OCI)',
+};
+V.fs = function (arg) {
+  const tb = FSN[arg] ? arg : 'A';
+  const list = A.filter(a => a.fs === tb);
+  return `<h1>فهرس القوائم المالية والحسابات</h1><p class="sub">كل حساب مرتبط بالدورة والتأكيدات والمخاطر والضوابط والإجراءات وأوراق العمل.</p>
+ <div class="tabs" role="tablist">${Object.keys(FSN)
+   .map(
+     x =>
+       `<a role="tab" href="${L('fs/' + x)}" aria-selected="${x === tb}">${FSN[x]} <span class="cnt">${A.filter(a => a.fs === x).length}</span></a>`
+   )
+   .join('')}</div>
+ <div class="tw"><table><thead><tr><th>الحساب (Account)</th><th>المجموعة</th><th>الحسابات الفرعية</th><th>IR</th><th>CR</th><th>Sig/Fraud</th><th>التأكيدات</th><th>الدورة</th><th>الإجراءات</th><th>أوراق العمل</th><th>الإنجاز</th></tr></thead><tbody>${list
+   .map(a => {
+     const ids = PROCS.filter(p => p.acc === a.id && p.src === 'acc').map(p => p.id),
+       g = prog(ids);
+     const sg = a.rk.some(r => r[1].indexOf('S') > -1),
+       fr = a.rk.some(r => r[1].indexOf('F') > -1);
+     return `<tr><td class="wide"><a href="${L('acc/' + a.id)}"><b>${esc(a.n)}</b></a><br><span class="mut">${esc(a.en)}</span></td><td class="sm">${esc(a.g)}</td><td class="sm">${a.subs.map(s => esc(s[0])).join(' · ')}</td><td>${lvB(a.ir)}</td><td>${lvB(a.cr)}</td><td>${sg ? '<span class="b sig">SR</span>' : ''}${fr ? '<span class="b fr">FR</span>' : ''}</td><td>${asB(split(a.as))}</td><td>${CY[a.cy] ? `<a href="${L('cyc/' + a.cy)}">${esc(CY[a.cy].n)}</a>` : ''}</td><td>${ids.length}</td><td>${hub.wpL(a.wps)}</td><td>${bar(g.p)}<small class="mut">${g.p}%</small></td></tr>`;
+   })
+   .join('')}</tbody></table></div>`;
+};
+V.acc = function (id) {
+  const a = AC[id];
+  if (!a) return hub.nf();
+  const procs = PROCS.filter(p => p.src === 'acc' && p.acc === id),
+    risks = RISKS.filter(r => r.src === 'acc' && r.acc === id),
+    ctr = CTRLS.filter(c => c.acc === id),
+    cctr = CTRLS.filter(c => c.src === 'cyc' && c.cy === a.cy);
+  const inds = IND.filter(i => i.ac.indexOf(id) > -1),
+    cxs = CX.filter(x => (x.ac || []).indexOf(id) > -1),
+    g = prog(procs.map(p => p.id));
+  const order = ['WT', 'TOC', 'SAP', 'TOD', 'SMP', 'CONF', 'REC', 'CUT', 'VAL', 'EX', 'CMP', 'RO', 'PD', 'JE', 'INQ'];
+  const types = order.filter(tp => procs.some(p => p.t === tp));
+  const allWps = [];
+  procs.forEach(p =>
+    split(p.wp).forEach(r => {
+      if (allWps.indexOf(r) < 0) allWps.push(r);
+    })
+  );
+  split(a.wps).forEach(r => {
+    if (allWps.indexOf(r) < 0) allWps.push(r);
+  });
+  const asr = split(a.as);
+  const concl = `بناءً على إجراءات المراجعة المنفذة على ${a.n} (${a.en}) والموثقة في أوراق العمل ${allWps.slice(0, 6).join('، ')}، وتقييم الاستثناءات مقارنةً بأهمية الأداء، حصلنا على أدلة كافية ومناسبة بأن الرصيد وما يرتبط به خالٍ من التحريف الجوهري فيما يتعلق بتأكيدات: ${asr.map(k => (ASR[k] ? ASR[k][1] : k)).join('، ')}، باستثناء ما ورد في ملخص التحريفات إن وجد.`;
+  const nf_ = recs(CUR.eng, 'f').filter(f => f.acc === id).length + recs(CUR.eng, 'a').filter(f => f.acc === id).length;
+  return `<p class="noprint"><a href="${L('fs/' + a.fs)}">← ${FSN[a.fs]}</a></p><h1>${esc(a.n)} <span class="mut" style="font-size:.9rem">${esc(a.en)}</span></h1>
+ <p class="sub">${esc(a.g)} · الدورة: ${CY[a.cy] ? `<a href="${L('cyc/' + a.cy)}">${esc(CY[a.cy].n)}</a>` : '-'} · Inherent ${lvB(a.ir)} Control ${lvB(a.cr)} ${isaL(split(a.isa))}</p>
+ ${chain([
+   ['acc-risk', 'المخاطر ' + risks.length],
+   ['acc-as', 'التأكيدات ' + asr.length],
+   ['acc-ctl', 'الضوابط ' + (ctr.length + cctr.length)],
+   ['acc-pr', 'الإجراءات ' + procs.length],
+   ['acc-ev', 'الأدلة'],
+   ['acc-wp', 'أوراق العمل ' + allWps.length],
+   ['acc-fn', 'الملاحظات والتسويات ' + nf_],
+   ['acc-cc', 'الاستنتاج'],
+ ])}
+ <div class="card">${bar(g.p)}<span class="mut">الإنجاز ${g.p}% (${g.d}/${g.t}) · استثناءات ${g.ex}</span></div>
+ ${sec('acc-obj', 'هدف المراجعة (Audit Objective)', `<div class="card">${esc(a.obj)}</div>`)}
+ ${sec('acc-sub', 'الحسابات الفرعية (Sub-accounts)', `<div class="tw"><table><thead><tr><th>Sub-account</th><th>الوصف والاعتبارات</th></tr></thead><tbody>${a.subs.map(s => `<tr><td><b>${esc(s[0])}</b></td><td>${esc(s[1])}</td></tr>`).join('')}</tbody></table></div>`, a.subs.length)}
+ ${sec(
+   'acc-as',
+   'التأكيدات ذات الصلة (Relevant Assertions)',
+   `<div class="tw"><table><thead><tr><th>Assertion</th><th>لماذا يرتبط بهذا الحساب وما الخطر الذي يعالجه</th><th>الإجراءات التي توفر الدليل</th></tr></thead><tbody>${asr
+     .map(k => {
+       const pp = procs.filter(p => p.as.indexOf(k) > -1);
+       return `<tr><td>${asB([k])}<br><small class="mut">${esc(ASR[k][0])}</small></td><td class="tx">${esc((a.asw && a.asw[k]) || ASR[k][3])}</td><td class="sm">${pp.map(p => ptB(p.t)).join(' ')} <span class="mut">(${pp.length})</span></td></tr>`;
+     })
+     .join('')}</tbody></table></div>`
+ )}
+ ${sec('acc-risk', 'تقييم المخاطر (Risk Assessment)', riskTable(risks), risks.length)}
+ ${sec('acc-ctl', 'الضوابط الرئيسية (Key Controls)', `<h3>ضوابط خاصة بالحساب</h3>${ctrlTable(ctr)}<h3>ضوابط الدورة المرتبطة (RCM)</h3>${ctrlTable(cctr)}`, ctr.length + cctr.length)}
+ ${sec('acc-pr', 'إجراءات المراجعة (Audit Procedures)', types.map(tp => `<h3>${ptB(tp)} ${esc(PT[tp][1])}</h3>${procTable(procs.filter(p => p.t === tp))}`).join(''), procs.length)}
+ ${sec('acc-ev', 'أدلة المراجعة والمستندات', `<div class="card kv"><div>الأدلة المطلوبة</div><div>${esc(a.ev)}</div><div>المستندات المصدرية</div><div>${esc(a.src)}</div><div>الإجراءات البديلة</div><div>${esc(a.alt)}</div><div>النتيجة المتوقعة</div><div>${esc(a.exp)}</div><div>الاستثناءات المحتملة</div><div>${esc(a.exc)}</div><div>إجراء المتابعة</div><div>${esc(a.fu)}</div></div>`)}
+ ${sec(
+   'acc-wp',
+   'أوراق العمل (Working Papers)',
+   `<div class="tw"><table><thead><tr><th>Ref</th><th>ورقة العمل</th><th>Working Paper</th><th>سير العمل</th></tr></thead><tbody>${allWps
+     .filter(r => WP[r])
+     .map(r => `<tr><td>${hub.wpL(r)}</td><td>${esc(WP[r].ar)}</td><td>${esc(WP[r].en)}</td><td>${wfSel(r)}</td></tr>`)
+     .join('')}</tbody></table></div>`,
+   allWps.length
+ )}
+ ${inds.length || cxs.length ? sec('acc-ind', 'القطاعات والمجالات المعقدة المرتبطة', `<p>${inds.map(i => `<a class="b as" href="${L('ind/' + i.id)}">${esc(i.n)}</a>`).join(' ')}</p><p>${cxs.map(x => `<a class="b H" href="${L('cx/' + x.id)}">${esc(x.n)}</a>`).join(' ')}</p>`) : ''}
+ ${sec('acc-fn', 'الملاحظات والتسويات (Findings & Adjustments)', `<div data-block="accfn|${id}">${hub.BLOCKS.accfn(id)}</div>${can('edit') ? `<div class="card noprint"><b>إضافة ملاحظة / استثناء لهذا الحساب</b>${hub.findingForm(id)}</div>` : ''}`)}
+ ${sec('acc-cc', 'استنتاج المراجع (Auditor Conclusion)', `<div class="note">${esc(concl)}</div><label class="fl" for="cc-${id}">استنتاج المراجع النهائي / تعديلات:</label>${edc('cc.' + id, { label: 'استنتاج المراجع النهائي', ph: 'اكتب الاستنتاج النهائي أو التعديلات…' })}`)}`;
+};
