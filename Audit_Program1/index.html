@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#ffffff" />
+    <!-- Applies saved theme/density/language BEFORE first paint (must stay synchronous & first) -->
+    <script src="js/init/theme-init.js"></script>
+    <title>Audit-Plus — البرنامج الرئيسي للمراجعة الخارجية</title>
+    <!-- Styles: cascade order matters (single file: css/audit-plus.css) -->
+    <link rel="stylesheet" href="css/audit-plus.css" />
+  </head>
+  <body>
+    <button class="skip" data-jump="main" type="button">تخطي إلى المحتوى</button>
+    <div id="app"></div>
+    <div id="toasts" role="status" aria-live="polite"></div>
+    <div id="dlg"></div>
+    <noscript><p style="padding: 1rem">يتطلب هذا البرنامج تفعيل JavaScript.</p></noscript>
+    <!-- App: ES modules, entry js/main.js (evaluation order is defined there). Dev: npm run dev · Build: npm run build -->
+    <script type="module" src="js/main.js"></script>
+    <script src="js/standalone/iframe-height-reporter.js"></script>
+    <script src="js/standalone/header-autohide.js"></script>
+  </body>
+</html>
