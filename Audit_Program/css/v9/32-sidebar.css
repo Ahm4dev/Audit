@@ -1,0 +1,154 @@
+/* Audit-Plus · v9 · Sidebar (worksheet tree) — one authoritative definition (screen only; loaded last)
+   ------------------------------------------------------------------
+   Desktop  (>= 800px): sticky column beside the content, full height below the header/tabs.
+   Phone/tablet (< 800px): off-canvas drawer opened by the ☰ button or the floating "الأوراق" button.
+   The breakpoint is 800px everywhere (JS: matchMedia('(min-width:800px)') in app/29-events-lifecycle.js).
+   Item layout:  [status dot] [code] [title (max 3 lines)]
+   ------------------------------------------------------------------ */
+@media screen{
+
+:root{
+  --nav-w:clamp(264px,21vw,324px);
+  --nav-bg:var(--card); --nav-tx:var(--tx); --nav-dim:var(--mut); --nav-line:var(--bd); --nav-hov:var(--soft);
+  --nav-fs:.875rem;       /* worksheet titles */
+  --nav-row:36px;         /* min row height on mouse devices */
+  --nav-on-bg:var(--chip);
+  --nav-check:#ffffff;    /* tick inside a finished dot */
+}
+:root[data-theme=dark]{--nav-check:#06281c}
+@media (prefers-color-scheme:dark){:root[data-theme=system]{--nav-check:#06281c}}
+
+/* ============ container ============ */
+#nav{background:var(--nav-bg);color:var(--nav-tx);border:1px solid var(--nav-line);border-radius:18px;box-shadow:var(--sh);
+  padding:.7rem .55rem 1.2rem;scrollbar-width:thin;scrollbar-color:var(--bd2) transparent;overscroll-behavior:contain}
+#nav::-webkit-scrollbar{width:8px}
+#nav::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+#nav:hover::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--mut) 55%,transparent);background-clip:padding-box}
+/* inside an overflow container a normal outline would be clipped at the edges → draw it inwards */
+#nav :focus-visible{outline:2px solid var(--focus);outline-offset:-2px;border-radius:9px}
+
+/* ============ desktop ============ */
+@media (min-width:800px){
+  .layout.has-nav{grid-template-columns:var(--nav-w) minmax(0,1fr)}
+  #nav{position:sticky;top:var(--stick);align-self:start;
+    height:calc(100vh - var(--stick));height:calc(100dvh - var(--stick));max-height:none;margin:0;
+    border:0;border-inline-end:1px solid var(--nav-line);border-radius:0;box-shadow:none;
+    padding:.8rem .6rem 2rem;overflow-y:auto}
+  /* the old 5-layer cascade left some sidebar widgets with 10px radii; unify */
+  #nav details.ngs,#nav details.ngl,#nav .nvp,#nav .nrb,#nav .nvq .in{border-radius:12px}
+}
+
+/* ============ search box ============ */
+#nav .nvq{background:transparent;padding:.05rem .1rem .65rem;margin:0}
+#nav .nvq .in{min-height:40px;border:1px solid var(--bd);border-radius:12px;color:var(--tx);font-size:.9rem;
+  background:var(--soft) var(--ico-search) no-repeat right .8rem center;padding-inline:2.4rem .75rem;-webkit-appearance:none;appearance:none}
+:root[dir=ltr] #nav .nvq .in{background-position:left .8rem center}
+#nav .nvq .in::placeholder{color:var(--mut);opacity:1}
+#nav .nvq .in:hover{border-color:var(--bd2)}
+#nav .nvq .in:focus{background-color:var(--card);border-color:var(--acc);outline:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 20%,transparent)}
+
+/* ============ recently opened ============ */
+#nav .nrec{padding:0 .2rem .65rem;gap:.3rem}
+#nav .nrec .mut{color:var(--mut);width:100%;font-size:.72rem;font-weight:700}
+#nav .nrec .mapchip{background:var(--soft);color:var(--nav-tx);border:1px solid var(--bd);font-weight:600;font-size:.76rem;transition:background-color .12s,border-color .12s}
+#nav .nrec .mapchip:hover{background:var(--chip);text-decoration:none;color:var(--pri)}
+#nav .nrec .mapchip.on{background:var(--chip);border-color:var(--acc);color:var(--pri)}
+
+/* ============ overall progress ============ */
+#nav .nvp{display:grid;grid-template-columns:1fr;gap:.35rem;margin:0 .1rem .6rem;padding:.65rem .8rem .75rem;border-radius:14px;
+  background:var(--soft);border:1px solid var(--bd);color:var(--nav-tx);font-size:.8rem;font-weight:600}
+#nav .nvp .bar{height:6px;margin:0;background:var(--th)}
+#nav .nvp .bar i{background:linear-gradient(90deg,var(--acc),var(--pri2));border-radius:6px}
+
+/* ============ top-level sections ============ */
+#nav details.ngs{margin-top:.15rem;border-radius:14px;background:transparent}
+#nav details.ngs[open]{background:transparent}
+#nav summary{cursor:pointer;color:var(--nav-tx);transition:background-color .12s;-webkit-user-select:none;user-select:none}
+#nav summary:hover{background:var(--nav-hov)}
+#nav details.ngs>summary{color:var(--nav-tx);font-size:.95rem;font-weight:700;padding:.5rem .65rem;min-height:42px;border-radius:12px;gap:.5rem}
+#nav details.ngs[open]>summary{color:var(--pri)}
+#nav details>summary>span:first-child{flex:1;min-width:0}
+
+/* chevron: points toward the reading direction when collapsed, down when open (mirrors correctly in RTL and LTR) */
+#nav summary::after{content:"";width:.5rem;height:.5rem;flex:none;border:solid var(--nav-dim);border-width:0 2px 2px 0;border-radius:1px;
+  transform:translateY(-2px) rotate(45deg);transition:transform .16s}
+#nav details:not([open])>summary::after{transform:rotate(135deg)}
+:root[dir=ltr] #nav details:not([open])>summary::after{transform:rotate(-45deg)}
+
+/* progress pill */
+#nav .pc{background:var(--soft);color:var(--mut);border:1px solid var(--bd);border-radius:999px;font-size:.72rem;font-weight:600;
+  padding:0 .5rem;min-width:2.5rem;text-align:center;font-variant-numeric:tabular-nums;direction:ltr}
+
+/* ============ groups: a quiet vertical rail the worksheets hang from ============ */
+#nav details.ngg{margin:.05rem .1rem .3rem;margin-inline-start:.95rem;border-radius:0;border-inline-start:1px solid var(--nav-line);padding-inline-start:.2rem}
+#nav details.ngg>summary,#nav details.nga>summary{color:var(--nav-dim);font-size:.8rem;font-weight:700;padding:.3rem .5rem;min-height:36px;border-radius:9px}
+#nav details.ngg[open]>summary{color:var(--tx)}
+#nav details.ngg>summary .pc{background:none;border-color:transparent;padding:0;min-width:0}
+
+/* ============ worksheet rows ============ */
+#nav a{color:var(--nav-tx);transition:background-color .12s,color .12s}
+#nav a:hover{background:var(--nav-hov);color:var(--tx);text-decoration:none}
+#nav a.nw{display:grid;grid-template-columns:14px minmax(3.1rem,max-content) minmax(0,1fr);grid-auto-columns:auto;align-items:start;column-gap:.5rem;
+  position:relative;padding:.4rem .6rem;min-height:var(--nav-row);border-radius:9px;font-size:var(--nav-fs);line-height:1.5;justify-content:stretch}
+#nav a.nw .nd{color:var(--nav-dim);font-weight:700;font-size:.78rem;line-height:1.7;direction:ltr;unicode-bidi:isolate;text-align:start;
+  font-variant-numeric:tabular-nums;transition:color .12s}
+#nav a.nw .nt{color:var(--nav-tx);font-weight:500;white-space:normal;overflow:hidden;overflow-wrap:anywhere;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}
+#nav a.nw:hover .nd{color:var(--pri)}
+#nav a.nwa .rk{grid-column:4;color:var(--hi);font-size:.64rem;align-self:center}
+/* hover/focus: the v5 rule '#nav a.nw:hover .nt{color:#fff}' (white on the old dark sidebar) out-ranks the rules above → restate with equal weight */
+#nav a.nw:hover .nd,#nav a.nw:focus-visible .nd{color:var(--pri)}
+#nav a.nw:hover .nt,#nav a.nw:focus-visible .nt{color:var(--tx)}
+#nav a.nw[aria-current=page]:hover .nt,#nav a.nw[aria-current=page]:hover .nd{color:var(--pri)}
+#nav a.nw[aria-current=page]:hover{background:var(--nav-on-bg)}
+
+/* current worksheet: tinted row + accent bar on the leading edge */
+#nav a.nw[aria-current=page],#nav a[aria-current=page]{background:var(--nav-on-bg);color:var(--pri);box-shadow:none}
+#nav a.nw[aria-current=page]::before{content:"";position:absolute;inset-block:.4rem;inset-inline-start:0;width:3px;border-radius:3px;background:var(--acc)}
+#nav a.nw[aria-current=page] .nd{color:var(--pri)}
+#nav a.nw[aria-current=page] .nt{color:var(--pri);font-weight:700}
+
+/* completion dot: empty → half → three-quarters → ✓ */
+#nav a.nw .dot{position:relative;width:14px;height:14px;flex:none;margin-top:4px;border-radius:50%;background:transparent;border:1.6px solid var(--bd2);box-shadow:none}
+#nav a.nw.st-pg .dot{border-color:var(--st-pg);background:conic-gradient(var(--st-pg) 0 50%,transparent 0)}
+#nav a.nw.st-rv .dot{border-color:var(--st-rv);background:conic-gradient(var(--st-rv) 0 75%,transparent 0)}
+#nav a.nw.st-dn .dot{border-color:var(--st-dn);background:var(--st-dn)}
+#nav a.nw.st-dn .dot::after{content:"";position:absolute;left:50%;top:46%;width:3.5px;height:7px;border:solid var(--nav-check);border-width:0 1.8px 1.8px 0;transform:translate(-50%,-55%) rotate(40deg)}
+
+/* ============ recycle bin + extra tools ============ */
+#nav .nrb{display:flex;align-items:center;justify-content:space-between;margin:.8rem .1rem .25rem;padding:.5rem .8rem;border-radius:12px;
+  border:1px solid var(--nav-line);color:var(--nav-tx);font-size:.875rem;min-height:42px;background:transparent}
+#nav .nrb:hover{background:var(--nav-hov)}
+#nav details.ngl{margin-top:.35rem;border-radius:14px;background:transparent}
+#nav details.ngl>summary{color:var(--mut);font-size:.875rem;font-weight:600;min-height:42px;padding:.4rem .65rem;border-radius:12px}
+#nav .nlg{color:var(--mut);font-size:.72rem;font-weight:700;letter-spacing:0;padding:.7rem .7rem .2rem}
+#nav .nlg:not(:first-of-type){border-top:1px solid var(--nav-line);margin:.45rem .4rem 0;padding-inline:.3rem}
+#nav details.ngl>a{display:flex;align-items:center;font-size:.875rem;min-height:38px;padding:.3rem .65rem;margin-inline:.1rem;border-radius:9px;line-height:1.5}
+#nav details.ngl>a>span{min-width:0;overflow-wrap:anywhere}
+
+/* ============ phones & tablets: off-canvas drawer ============ */
+@media (max-width:799px){
+  body.nav-open #nav{display:block;position:fixed;z-index:80;top:var(--hdr-h);bottom:0;left:auto;right:auto;
+    inset-inline-start:0;inset-inline-end:auto;width:min(88vw,380px);height:auto;max-height:none;
+    border:0;border-inline-end:1px solid var(--nav-line);border-radius:0;box-shadow:var(--sh-pop);
+    overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+    padding:.8rem .6rem calc(2.5rem + env(safe-area-inset-bottom,0px));animation:navIn .24s cubic-bezier(.32,.72,.28,1)}
+  body.nav-open::before{content:"";position:fixed;z-index:79;inset:0;top:var(--hdr-h);background:rgba(6,22,24,.5)}
+  :root[data-theme=dark] body.nav-open::before{background:rgba(0,0,0,.6)}
+  /* touch comfort: 44px targets, bigger type, inputs ≥16px so iOS doesn't zoom on focus */
+  #nav a.nw{min-height:44px;padding-block:.5rem;font-size:.95rem;column-gap:.6rem;grid-template-columns:16px minmax(3.3rem,max-content) minmax(0,1fr)}
+  #nav a.nw .dot{width:16px;height:16px;margin-top:5px}
+  #nav a.nw .nd{font-size:.82rem;line-height:1.75}
+  #nav details.ngs>summary{min-height:48px;font-size:1rem}
+  #nav details.ngg>summary,#nav details.ngl>summary{min-height:44px;font-size:.9rem}
+  #nav details.ngl>a,#nav .nrb{min-height:46px;font-size:.95rem}
+  #nav .nvq .in{min-height:46px;font-size:max(16px,1rem)}
+  .top .srch input{font-size:max(16px,1rem)}
+}
+@media (max-width:799px) and (prefers-reduced-motion:reduce){body.nav-open #nav{animation:none}}
+/* touch laptops / tablets in landscape that still show the side column: keep targets finger-sized */
+@media (min-width:800px) and (pointer:coarse){
+  #nav a.nw{min-height:42px;padding-block:.45rem}
+  #nav details.ngg>summary{min-height:42px}
+}
+}

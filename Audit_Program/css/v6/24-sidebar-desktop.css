@@ -1,0 +1,20 @@
+/* Audit-Plus · V6 sidebar - desktop */
+/* ---------- القائمة الجانبية: سطح المكتب ---------- */
+@media screen and (min-width:800px){
+ .layout.has-nav{max-width:none;margin:0;padding:0 0 3rem;gap:0;
+  grid-template-columns:clamp(250px,20vw,300px) minmax(0,1fr);align-items:start}
+ .layout.has-nav>#main{min-width:0;padding:var(--gap) var(--pad) 0;max-width:1700px;width:100%}
+ #nav{position:sticky;top:var(--stick);align-self:start;
+  height:calc(100vh - var(--stick));height:calc(100dvh - var(--stick));max-height:none;
+  border-radius:0;border:0;border-inline-end:1px solid var(--nav-line);box-shadow:none;
+  padding:.8rem .6rem 1.5rem;margin:0;overflow-y:auto;overscroll-behavior:contain}
+ #nav::-webkit-scrollbar{width:6px}
+ #nav::-webkit-scrollbar-thumb{border:0;background-color:rgba(255,255,255,.16)}
+ #nav:hover::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.3)}
+ #nav details.ngs,#nav details.ngl,#nav .nvp,#nav .nrb,#nav .nvq .in{border-radius:10px}
+ #nav details.ngs[open]{background:rgba(255,255,255,.035)}
+ /* طيّ القائمة بزر ☰ في الهيدر */
+ html.nav-off .layout.has-nav{grid-template-columns:minmax(0,1fr)}
+ html.nav-off #nav{display:none}
+ html.nav-off .layout.has-nav>#main{margin-inline:auto}
+}
