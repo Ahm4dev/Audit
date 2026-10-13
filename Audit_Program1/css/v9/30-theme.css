@@ -1,0 +1,146 @@
+/* Audit-Plus · v9 · Modern calm theme (screen only; loaded last)
+   ------------------------------------------------------------------
+   Palette: soft sage-white surfaces + deep teal brand; semantic colours (red / amber / green)
+   are kept distinct from the teal brand so statuses never look like "decoration".
+   Every text/background pair below was checked for WCAG AA (>= 4.5:1; focus rings >= 3:1).
+   To re-brand: change --pri / --pri2 / --acc / --btn (+ their dark twins) only.
+   ------------------------------------------------------------------ */
+@media screen{
+
+/* ============ tokens — light ============ */
+:root{
+  --bg:#f4f7f6; --card:#ffffff; --tx:#16272a; --mut:#546669;
+  --bd:#dfe8e6; --bd2:#c8d6d3;
+  --pri:#0a5c58; --pri2:#0f766e; --acc:#0d9488; --btn:#0f766e; --btnd:#b42318;
+  --soft:#eff5f3; --th:#e8f0ee; --chip:#d9efeb; --focus:#0f8a83;
+  --hi:#b42318; --md:#8a5208; --lo:#18703f;
+  --hiB:#fdeceb; --mdB:#fdf1d8; --loB:#e0f4e8;
+  --hdr:#ffffff; --hdrtx:#16272a;
+  --ink:#0a5c58; --ink-hi:#0a5c58; --mint:#14b8a6;
+  /* worksheet status colours (sidebar dots, map chips) */
+  --st-pg:#b87a05; --st-rv:#2f7fc4; --st-dn:#1f9d5c;
+  --r:16px; --rs:10px;
+  --sh:0 1px 2px rgba(16,40,42,.05),0 8px 20px -14px rgba(16,40,42,.18);
+  --sh-pop:0 18px 44px -18px rgba(16,40,42,.35);
+  --glass:color-mix(in srgb,var(--card) 88%,transparent);
+  --font-ui:"Audit-Plus Sans","Segoe UI","Noto Sans Arabic",Tahoma,Arial,sans-serif;
+}
+/* ============ tokens — dark ============ */
+:root[data-theme=dark]{
+  --bg:#0e1517; --card:#151e21; --tx:#e4edec; --mut:#9bb0b0;
+  --bd:#243236; --bd2:#314247;
+  --pri:#7fd6cb; --pri2:#5cc5b8; --acc:#34c3b0; --btn:#0e7f76; --btnd:#b42318;
+  --soft:#1a2528; --th:#1c282b; --chip:#1b3a3a; --focus:#4fd1c5;
+  --hi:#ff9a90; --md:#f0c16a; --lo:#7fdba3;
+  --hiB:#4a2220; --mdB:#43341a; --loB:#17392a;
+  --hdr:#151e21; --hdrtx:#e4edec;
+  --ink:#7fd6cb; --ink-hi:#7fd6cb;
+  --st-pg:#e9b949; --st-rv:#74b4f4; --st-dn:#3fbf88;
+  --sh:0 1px 2px rgba(0,0,0,.35),0 8px 20px -14px rgba(0,0,0,.6);
+  --sh-pop:0 18px 44px -18px rgba(0,0,0,.8);
+}
+@media (prefers-color-scheme:dark){
+  :root[data-theme=system]{
+    --bg:#0e1517; --card:#151e21; --tx:#e4edec; --mut:#9bb0b0;
+    --bd:#243236; --bd2:#314247;
+    --pri:#7fd6cb; --pri2:#5cc5b8; --acc:#34c3b0; --btn:#0e7f76; --btnd:#b42318;
+    --soft:#1a2528; --th:#1c282b; --chip:#1b3a3a; --focus:#4fd1c5;
+    --hi:#ff9a90; --md:#f0c16a; --lo:#7fdba3;
+    --hiB:#4a2220; --mdB:#43341a; --loB:#17392a;
+    --hdr:#151e21; --hdrtx:#e4edec;
+    --ink:#7fd6cb; --ink-hi:#7fd6cb;
+    --st-pg:#e9b949; --st-rv:#74b4f4; --st-dn:#3fbf88;
+    --sh:0 1px 2px rgba(0,0,0,.35),0 8px 20px -14px rgba(0,0,0,.6);
+    --sh-pop:0 18px 44px -18px rgba(0,0,0,.8);
+  }
+}
+
+/* ============ typography ============ */
+/* base 15px on phones → 16.5px on desktops (Cairo's x-height is a touch smaller than the old font) */
+html{font-size:calc(clamp(15px,.25vw + 14.2px,16.5px) * var(--fs-scale))}
+body{font-family:var(--font-ui);line-height:1.75;font-weight:400;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  font-kerning:normal;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font-family:inherit}
+h1{font-weight:700;line-height:1.4;color:var(--pri)}
+h2{font-weight:700;line-height:1.45;color:var(--tx)}
+h3{font-weight:700;line-height:1.5;color:var(--tx)}
+main>h2{border-bottom:1px solid var(--bd)}
+.sub{color:var(--mut);line-height:1.85}
+::selection{background:color-mix(in srgb,var(--acc) 30%,transparent)}
+:focus-visible{outline-color:var(--focus)}
+a{color:var(--pri2)}
+html{scrollbar-color:var(--bd2) transparent}
+.wpl,.ref{font-family:var(--font-ui)}
+.res,.kpi b,.dc-b b{font-variant-numeric:tabular-nums}
+
+/* ============ surfaces ============ */
+.card,.kpi,.fbar,details.acc{border-color:var(--bd);box-shadow:var(--sh)}
+.card{border-radius:var(--r)}
+.tw{border-radius:14px}
+.tw thead th{background:var(--th);color:var(--mut)}
+tbody tr:hover td{background:color-mix(in srgb,var(--acc) 6%,transparent)}
+.note{background:var(--soft)}
+.bar{background:var(--th)}
+.bar i{background:linear-gradient(90deg,var(--acc),var(--pri2))}
+.cnt{background:var(--soft);color:var(--mut)}
+
+/* buttons: flat, calmer shadow, same sizes as before */
+.btn{box-shadow:0 1px 2px rgba(10,60,56,.18);font-weight:600}
+:root[data-theme=dark] .btn{box-shadow:none}
+.btn.o{color:var(--pri2);border-color:var(--pri2)}
+.btn.o:hover,.btn.g:hover{background:var(--chip)}
+.btn.g{background:var(--card);border-color:var(--bd2)}
+.btn:hover{filter:none}
+.btn:not(.o):not(.g):hover{background:color-mix(in srgb,var(--btn) 88%,#000)}
+:root[data-theme=dark] .btn:not(.o):not(.g):hover{background:color-mix(in srgb,var(--btn) 88%,#fff)}
+.btn.d:hover{background:color-mix(in srgb,var(--btnd) 88%,#000)}
+
+/* form controls */
+.in,.fgrid input:not([type=checkbox]):not([type=radio]):not([type=file]),.fgrid select,.fgrid textarea,select.sel,textarea.ta,input.in,select.st{
+  background:var(--card);border-color:var(--bd2);color:var(--tx)}
+.in:hover,select.sel:hover,textarea.ta:hover{border-color:color-mix(in srgb,var(--pri2) 45%,var(--bd2))}
+input[type=checkbox],input[type=radio],progress{accent-color:var(--pri2)}
+.ed{background:var(--soft)}
+.ed:focus,td.e:focus{background:var(--card)}
+::placeholder{color:color-mix(in srgb,var(--mut) 80%,transparent);opacity:1}
+
+/* chips / badges */
+.b.as,.pt{background:var(--chip);color:var(--pri)}
+.chain button,.chain span.c{background:var(--chip);color:var(--pri)}
+.hl{background:#ffe9a8;color:#2a2000}
+:root[data-theme=dark] .hl{background:#5b4a14;color:#fff3c9}
+
+/* dashboard cards — hard-coded amber/red in earlier layers → semantic tokens (also fixes dark mode) */
+.dc{border-radius:var(--r);box-shadow:var(--sh)}
+.dc:hover{box-shadow:var(--sh-pop);transform:translateY(-2px)}
+.dc-b b{color:var(--pri)}
+.dc-w{color:var(--md);background:var(--mdB)}
+.dtl a{background:var(--soft)}
+.dtl b{color:var(--md)}
+.dtl a.bad b{color:var(--hi)}
+.dsec:hover{background:var(--soft)}
+.eng2 .etabrow .cnt.bad{background:var(--hiB);color:var(--hi)}
+.st4-pg{background:var(--mdB);color:var(--md);border-color:color-mix(in srgb,var(--md) 40%,transparent)}
+.st4-rv{background:color-mix(in srgb,var(--st-rv) 16%,var(--card));color:color-mix(in srgb,var(--st-rv) 60%,var(--tx));border-color:color-mix(in srgb,var(--st-rv) 45%,transparent)}
+.st4-dn{background:var(--loB);color:var(--lo);border-color:color-mix(in srgb,var(--lo) 40%,transparent)}
+
+/* dialogs / toasts */
+.dlg{border-radius:20px;box-shadow:var(--sh-pop);border-color:var(--bd)}
+.dlg-bk{background:rgba(8,22,24,.55)}
+.toast{border-radius:14px;box-shadow:var(--sh-pop);border-color:var(--bd);border-inline-start-color:var(--pri2)}
+
+/* ============ login / first-run gate ============ */
+.gate{background:radial-gradient(80% 60% at 85% -10%,#14756d 0,transparent 60%),radial-gradient(70% 60% at 0% 110%,#0f4f5c 0,transparent 55%),#0a3a38}
+:root[data-theme=dark] .gate{background:radial-gradient(80% 60% at 85% -10%,#10433f 0,transparent 60%),#0b1214}
+.gate .card{border-color:rgba(255,255,255,.08);border-radius:24px}
+.gate .card h1{letter-spacing:.02em;color:var(--pri)}
+
+/* ============ details / accordions (worksheet secondary blocks) ============ */
+details.wpx>summary{color:var(--pri)}
+details.wpx>summary:hover,details.acc>summary:hover{background:var(--soft)}
+
+/* ============ motion preferences ============ */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
+}
+}
