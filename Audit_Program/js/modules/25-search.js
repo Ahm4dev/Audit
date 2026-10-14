@@ -1,0 +1,37 @@
+/* MEAP · Background search index, saved filters, shortcuts help */
+'use strict';
+/* ================= a16 · Background search index (incremental), paginated results, saved filters, shortcuts help ================= */
+/* Library index: built once in idle time, in chunks (never blocks the UI). Engagement data: normalised text cached per key and
+   refreshed incrementally — only keys whose value changed are re-normalised. */
+const SIDX={lib:null,building:false,data:new Map(),eng:null,
+ build(){if(this.lib||this.building)return;this.building=true;const src=[];const add=(t,id,label,href,txt)=>src.push({t,id,label,href,txt});
+  A.forEach(a=>add('acc',a.id,a.n,'acc/'+a.id,[a.n,a.en,a.g].concat((a.subs||[]).map(s=>s[0]+' '+s[1])).join(' ')));C.forEach(c=>add('cyc',c.id,c.n,'cyc/'+c.id,c.n+' '+c.en));IND.forEach(i=>add('ind',i.id,i.n,'ind/'+i.id,i.n+' '+i.en+' '+(i.rk||[]).join(' ')));CX.forEach(x=>add('cx',x.id,x.n,'cx/'+x.id,x.n+' '+x.en+' '+x.obj));
+  ISA.forEach(s=>add('isa',s[0],'ISA '+s[0]+' '+s[1],'isa/'+s[0],'isa '+s[0]+' '+s[1]+' '+(s[2]||'')));Object.values(WP).forEach(w=>add('wp',w.ref,w.ref+' '+w.ar,'wp/'+encodeURIComponent(w.ref),w.ref+' '+w.en+' '+w.ar+' '+w.ob));TPL.forEach(d=>add('doc',d.id,d.ar,'form/'+d.id,d.ar+' '+d.en+' '+d.isa+' '+d.desc));
+  PROCS.forEach(p=>add('pp',p.id,p.tx,'proc/'+encodeURIComponent(p.id),p.tx+' '+p.ev));RISKS.forEach(r=>add('risk',r.id,r.d,r.href,r.d));CTRLS.forEach(c=>add('ctl',c.id,c.id+' '+c.d,c.href,c.id+' '+c.d+' '+(c.test||'')));EVT.forEach(e=>add('ev',e.ar,e.ar,'evidence',e.ar+' '+e.en));
+  let i=0;const step=dl=>{const end=Math.min(src.length,i+800);for(;i<end;i++)src[i].n=normAr(src[i].txt);if(i<src.length){(window.requestIdleCallback||setTimeout)(step,{timeout:200})}else{this.lib=src;this.building=false}};(window.requestIdleCallback||setTimeout)(step,{timeout:200})},
+ dataHits(nq){const st=CUR.eng;if(this.eng!==st){this.data=new Map();this.eng=st}const out=[];if(!st)return out;
+  for(const [k,e] of st.map){const v=e.v;if(typeof v!=='string'||!v)continue;let c=this.data.get(k);if(!c||c.v!==v){c={v,n:normAr(v)};this.data.set(k,c)}if(c.n.includes(nq))out.push({k,v})}return out},
+ libHits(nq){if(!this.lib)return{};const out={};for(const x of this.lib)if(x.n.includes(nq))(out[x.t]=out[x.t]||[]).push(x);return out}};
+const PAGER={};const PSTEP=50;
+function pgLimit(key,step){return PAGER[key]||(step||PSTEP)}
+function pgMore(key,total,step){const lim=pgLimit(key,step);return total>lim?`<p class="noprint"><button class="btn g sm" type="button" data-act="pgmore" data-pg="${esc(key)}" data-step="${step||PSTEP}">عرض المزيد (${lim.toLocaleString('en-US')} من ${total.toLocaleString('en-US')})</button></p>`:''}
+const SECT=[['data','في بيانات هذا الارتباط'],['tb','حسابات ميزان المراجعة'],['acc','بنود القوائم والحسابات'],['wp','أوراق العمل'],['doc','النماذج والتقارير'],['pp','الإجراءات'],['risk','المخاطر'],['ctl','الضوابط'],['cyc','الدورات'],['ind','القطاعات'],['cx','المجالات المعقدة'],['isa','معايير ISA'],['ev','أدلة المراجعة']];
+V.search=function(q){q=q||'';const nq=normAr(q);if(!nq)return '<h1>بحث</h1><p>اكتب كلمة للبحث.</p>';if(!SIDX.lib){SIDX.build();setTimeout(()=>{if(CUR.view==='search')UI.refreshView()},400);return `<h1>نتائج البحث: «${esc(q)}»</h1><div class="skel" aria-busy="true"><span></span><span></span><span></span></div><p class="mut small">جارٍ بناء فهرس البحث في الخلفية…</p>`}
+ const lib=SIDX.libHits(nq);const data=SIDX.dataHits(nq).map(d=>{const p=d.k.split('.');let href=L('dash');if(p[0]==='wp')href=L('wp/'+encodeURIComponent(p[1]));else if(['f','a','r'].includes(p[0]))href=L('logs/'+p[0]);else if(p[0]==='cc')href=L('acc/'+p[1]);else if(p[0]==='ref')href=L('refs/'+encodeURIComponent(p[1]));else if(p[0]==='doc')href=L('form/'+encodeURIComponent(p[1]));else if(p[0]==='nt'||p[0]==='pp')href=L('proc/'+encodeURIComponent(p[1]));return Object.assign(d,{href})});
+ const tbh=TBSTORE.ready()?TBSTORE.searchSync(q,100000):[];let total=data.length+tbh.length;Object.values(lib).forEach(a=>{total+=a.length});
+ const body=k=>{if(k==='data'){const lim=pgLimit('s.data');return data.length?`<div class="tw"><table><thead><tr><th>الموضع</th><th>النص</th></tr></thead><tbody>${data.slice(0,lim).map(d=>`<tr><td><a href="${d.href}">${esc(keyLabel(d.k))}</a></td><td class="tx">${hl(d.v.slice(0,240),q)}</td></tr>`).join('')}</tbody></table></div>${pgMore('s.data',data.length)}`:''}
+  if(k==='tb'){const lim=pgLimit('s.tb');return tbh.length?`<ul class="lkl">${tbh.slice(0,lim).map(r=>`<li><a dir="ltr" href="${L('tb/acct:'+encodeURIComponent(r.code))}">${esc(r.code)}</a> ${esc(r.name||r.nameEn)} — <span dir="ltr">${fmtA(r.cb)}</span></li>`).join('')}</ul>${pgMore('s.tb',tbh.length)}`:''}
+  const a=lib[k]||[];const lim=pgLimit('s.'+k);return a.length?`<ul class="lkl">${a.slice(0,lim).map(x=>`<li><a href="${L(x.href)}">${esc(String(x.label).slice(0,180))}</a></li>`).join('')}</ul>${pgMore('s.'+k,a.length)}`:''};
+ const cnt=k=>k==='data'?data.length:k==='tb'?tbh.length:(lib[k]||[]).length;
+ return `<h1>نتائج البحث: «${esc(q)}» <span class="cnt">${total.toLocaleString('en-US')}</span></h1><p class="noprint"><a class="btn o sm" href="#/find/${encodeURIComponent(q)}">بحث في كل الشركات والارتباطات</a></p><p class="mut small">البحث يوحّد الحروف (أ إ آ ا، ي ى، ة ه) ويتجاهل التشكيل ويقبل الأرقام الهندية.</p>
+ ${SECT.filter(s=>cnt(s[0])).map((s,i)=>sec('s'+i,s[1],body(s[0]),cnt(s[0]))).join('')||'<div class="empty"><p>لا توجد نتائج.</p><p class="mut small">جرّب كلمة أقصر أو كود حساب أو مرجع ورقة عمل (مثل E-04).</p></div>'}`};
+/* ---------- saved filters (explorer) — per device ---------- */
+function savedFilters(){return LS.get('meap.filters',[])}
+function savedFiltersHTML(){const L_=savedFilters();return `<div class="row noprint sfl">${L_.map((f,i)=>`<span class="chipb"><button class="lnk" type="button" data-act="fload" data-i="${i}">⭐ ${esc(f.n)}</button><button class="lnk" type="button" data-act="fdel" data-i="${i}" aria-label="حذف الفلتر ${esc(f.n)}">✕</button></span>`).join('')}<button class="btn g sm" type="button" data-act="fsave">حفظ الفلاتر الحالية</button></div>`}
+/* ---------- keyboard shortcuts help (?) ---------- */
+const KEYS=[['Ctrl + K','البحث الشامل'],['Alt + Z','التراجع عن آخر تعديل'],['?','هذه النافذة'],['Esc','إغلاق النافذة / القائمة'],['g ثم d','لوحة المؤشرات'],['g ثم t','ميزان المراجعة'],['g ثم w','مكتبة أوراق العمل'],['g ثم f','النماذج والتقارير'],['g ثم i','بانتظار مراجعتي'],['g ثم l','الملاحظات والتسويات'],['↑ ↓ ثم Enter','الاختيار من قائمة الإكمال التلقائي'],['Enter / مسافة','فتح منطقة الإرفاق']];
+function keysDlg(){openDlg(`<h2>اختصارات لوحة المفاتيح</h2><div class="tw"><table><thead><tr><th>المفتاح</th><th>الإجراء</th></tr></thead><tbody>${KEYS.map(k=>`<tr><td><kbd>${esc(k[0])}</kbd></td><td>${esc(k[1])}</td></tr>`).join('')}</tbody></table></div><div class="acts"><button class="btn" type="button" data-x="1" data-closedlg>${t('close')}</button></div>`,{label:'اختصارات لوحة المفاتيح'})}
+let GKEY=0;
+document.addEventListener('keydown',e=>{const tg=e.target;if(tg instanceof Element&&(tg.closest('input,textarea,select,[contenteditable="true"],[contenteditable="plaintext-only"]')))return;if(e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.key==='?'){e.preventDefault();keysDlg();return}if(e.key==='g'){GKEY=Date.now();return}
+ if(GKEY&&Date.now()-GKEY<1200&&CUR.eng){const m={d:'dash',t:'tb',w:'wplib',f:'forms',i:'inbox',l:'logs'}[e.key];GKEY=0;if(m){e.preventDefault();location.hash=L(m)}}});
