@@ -1,0 +1,84 @@
+/* MEAP · V5 content (breadcrumbs, cards, tables, forms, buttons, dialogs) */
+/* ================================================================
+   المحتوى
+   ================================================================ */
+/* مسار التنقل */
+.bc ol{font-size:.82rem}
+.bc a{color:var(--mut)}.bc a:hover{color:var(--pri2)}
+.bcmap,.bcpn{background:var(--card);border:1px solid var(--bd);border-radius:999px;padding:.12rem .7rem;color:var(--tx);font-weight:600}
+.bcmap:hover{background:var(--chip);text-decoration:none}
+
+/* البطاقات والمؤشرات */
+.card{border-radius:var(--r);padding:clamp(.8rem,1.8vw,1.3rem)}
+.kpi{border-radius:var(--r);padding:.85rem 1.1rem;position:relative;overflow:hidden;--kc:var(--pri2)}
+.kpi::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:4px;background:var(--kc)}
+.kpi.w{--kc:var(--md)}.kpi.r{--kc:var(--hi)}.kpi.g{--kc:var(--lo)}
+.kpi b{font-size:clamp(1.1rem,.95rem + .5vw,1.35rem);font-weight:700;font-variant-numeric:tabular-nums}
+.kpi span{display:block;margin-top:.15rem}
+.bar{height:8px;background:var(--th);border-radius:8px}.bar i{border-radius:8px}
+.note{border-radius:9px;padding:.7rem .95rem;line-height:1.75;border-inline-start-width:4px}
+.note.warn{background:color-mix(in srgb,var(--md) 10%,var(--card))}
+.note.bad{background:color-mix(in srgb,var(--hi) 9%,var(--card))}
+.note.ok{background:color-mix(in srgb,var(--lo) 10%,var(--card));border-inline-start-color:var(--lo)}
+.empty,.dz{border-radius:var(--r)}
+.b{font-weight:600;padding:.08rem .6rem}
+.pt{border-radius:7px}
+.cnt{font-variant-numeric:tabular-nums}
+.chain button,.chain span.c{font-weight:600}
+
+/* التبويبات الداخلية */
+.tabs{gap:.15rem;border-bottom:1px solid var(--bd)}
+.tabs a,.tabs button{border-radius:0;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;transition:color .12s,border-color .12s}
+.tabs a:hover,.tabs button:hover{color:var(--tx);text-decoration:none;border-bottom-color:var(--bd2)}
+.tabs [aria-current=page],.tabs [aria-selected=true]{background:none;color:var(--pri);border-color:transparent;border-bottom-color:var(--acc)}
+
+/* الجداول */
+.tw{border-radius:12px;box-shadow:var(--sh)}
+table{font-size:.87rem}
+th{background:var(--th);color:var(--mut);font-size:.77rem;font-weight:700;padding:.55rem .65rem;border-bottom:1px solid var(--bd2)}
+td{padding:.55rem .65rem;border-bottom:1px solid color-mix(in srgb,var(--bd) 75%,transparent)}
+.tw table:not(.stack) thead tr:first-child th:first-child{border-start-start-radius:11px}
+.tw table:not(.stack) thead tr:first-child th:last-child{border-start-end-radius:11px}
+tbody tr:hover td{background:color-mix(in srgb,var(--pri2) 5%,transparent)}
+.wpl,.ref{font-family:"MEAP Sans",Consolas,"Courier New",monospace}
+.wpl{border:1px solid color-mix(in srgb,var(--pri2) 20%,transparent);font-weight:600;padding:0 .5rem}
+a.wpl:hover{background:var(--pri2);color:#fff;text-decoration:none}
+
+/* النماذج والحقول */
+.in,.fgrid input:not([type=checkbox]):not([type=radio]):not([type=file]),.fgrid select,.fgrid textarea,select.sel,textarea.ta,input.in{border-radius:10px;border-color:var(--bd2);transition:border-color .12s,box-shadow .12s}
+select.st{border-radius:9px}
+input:not([type=checkbox]):not([type=radio]):focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--focus);outline-offset:0;box-shadow:0 0 0 4px color-mix(in srgb,var(--focus) 22%,transparent)}
+.fgrid label,.fl{font-weight:600}
+.ed,td.e{border-radius:8px}
+.fbar{border-radius:var(--r)}
+details.acc{border-radius:var(--r)}
+details.acc>summary{font-weight:600}
+details.acc[open]>summary{border-bottom:1px solid var(--bd)}
+
+/* الأزرار */
+.btn{border-radius:10px;font-weight:600;box-shadow:0 1px 2px rgba(11,32,56,.22),inset 0 1px 0 rgba(255,255,255,.16);transition:filter .12s,background-color .12s,transform .06s}
+.btn:active{transform:translateY(1px)}
+.btn.o{box-shadow:none;border-width:1.5px}.btn.o:hover{background:var(--chip)}
+.btn.g{box-shadow:none}.btn.g:hover{background:var(--chip)}
+
+/* أوراق العمل */
+.wpsecnav{background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px)}
+.wpsecnav a{font-weight:600;transition:background-color .12s,border-color .12s}
+.wpsecnav a:hover{border-color:var(--pri2)}
+.wpsech{border-bottom:1px solid var(--bd2);font-weight:700}
+.wpsech .ref{border:1px solid color-mix(in srgb,var(--pri2) 22%,transparent)}
+.doc,.sampbox,.apbox{border-radius:var(--r)}
+
+/* مؤشرات صغيرة */
+.dot{box-shadow:0 0 0 3px color-mix(in srgb,var(--lo) 20%,transparent)}
+kbd{border-radius:6px}
+
+/* نوافذ وتنبيهات */
+.dlg{border-radius:18px;box-shadow:0 24px 70px -20px rgba(0,0,0,.5)}
+.dlg-bk{background:rgba(7,16,30,.55);backdrop-filter:blur(3px)}
+.toast{border-radius:12px;box-shadow:0 14px 34px -12px rgba(0,0,0,.35)}
+
+/* شاشة الدخول */
+.gate{background:radial-gradient(90% 70% at 85% -10%,var(--ink-hi) 0,transparent 60%),var(--ink);align-items:center}
+.gate .card{border-radius:22px;padding:clamp(1.2rem,3vw,2rem);box-shadow:0 30px 80px -30px rgba(0,0,0,.7);border-color:rgba(255,255,255,.1)}
+.gate .card h1{font-size:1.7rem;letter-spacing:.08em}

@@ -1,0 +1,118 @@
+/* MEAP · v10 · Sidebar (worksheet tree) — the ONLY stylesheet that styles #nav.
+   Three visually distinct levels (sub-papers live as tabs INSIDE their main worksheet, never in the tree):
+     L1  section        .ngs   (e.g. Plans and Procedures)       — filled bar, large bold title, progress pill
+     L2  group          .ngg   (e.g. Current liabilities)        — accent rail + marker, medium bold title
+     L3  area / paper   a.nw   (e.g. Inventory, Zakat)           — row with status dot; the open one is highlighted with a rail
+   Desktop (>=800px): sticky column.  Phone/tablet (<800px): off-canvas drawer (JS breakpoint = 800px). */
+@media screen{
+:root{
+  --nav-w:clamp(272px,22vw,330px);
+  --nav-bg:var(--card);--nav-tx:var(--tx);--nav-dim:var(--mut);--nav-line:var(--bd);--nav-hov:var(--soft);
+  --nav-on-bg:var(--chip);--nav-check:#fff;--nav-rail:color-mix(in srgb,var(--acc) 45%,transparent)}
+:root[data-theme=dark]{--nav-check:#06281c}
+@media (prefers-color-scheme:dark){:root[data-theme=system]{--nav-check:#06281c}}
+
+/* ---------- container ---------- */
+#nav{background:var(--nav-bg);color:var(--nav-tx);border:1px solid var(--nav-line);border-radius:18px;box-shadow:var(--sh);
+  padding:.7rem .55rem 1.5rem;overflow-y:auto;overscroll-behavior:contain;scroll-padding:4rem 0 1.2rem;scrollbar-width:thin;scrollbar-color:var(--bd2) transparent}
+#nav::-webkit-scrollbar{width:8px}
+#nav::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+#nav :focus-visible{outline:2px solid var(--focus);outline-offset:-2px;border-radius:9px}
+@media (min-width:800px){
+  .layout.has-nav{max-width:none;margin:0;padding:0 0 3rem;gap:0;grid-template-columns:var(--nav-w) minmax(0,1fr);align-items:start}
+  .layout.has-nav>#main{min-width:0;padding:var(--gap) var(--pad) 0;max-width:1700px;width:100%}
+  #nav{display:block;position:sticky;top:var(--stick);align-self:start;margin:0;
+    height:calc(100vh - var(--stick));height:calc(100dvh - var(--stick));
+    border:0;border-inline-end:1px solid var(--nav-line);border-radius:0;box-shadow:none;padding:.8rem .6rem 2rem}
+  html.nav-off .layout.has-nav{grid-template-columns:minmax(0,1fr)}
+  html.nav-off #nav{display:none}
+  html.nav-off .layout.has-nav>#main{margin-inline:auto}
+}
+@media (max-width:799px){
+  #nav{display:none}
+  body.nav-open{overflow:hidden}
+  body.nav-open #nav{display:block;position:fixed;z-index:80;top:var(--hdr-h);bottom:0;inset-inline-start:0;inset-inline-end:auto;
+    width:min(90vw,380px);height:auto;max-height:none;border:0;border-inline-end:1px solid var(--nav-line);border-radius:0;box-shadow:var(--sh-pop);
+    -webkit-overflow-scrolling:touch;padding:.8rem .6rem calc(5rem + env(safe-area-inset-bottom,0px));animation:navIn .24s cubic-bezier(.32,.72,.28,1)}
+  body.nav-open::before{content:"";position:fixed;z-index:79;inset:0;top:var(--hdr-h);background:rgba(6,22,24,.5)}
+  :root[data-theme=dark] body.nav-open::before{background:rgba(0,0,0,.6)}
+  body.nav-open .navfab{display:none!important}
+  :root[dir=ltr] body.nav-open #nav{animation-name:navInL}
+  #nav a.nw{min-height:44px}
+  #nav .nvq .in{min-height:46px;font-size:max(16px,1rem)}
+  .top .srch input{font-size:max(16px,1rem)}
+}
+@media (max-width:799px) and (prefers-reduced-motion:reduce){body.nav-open #nav{animation:none}}
+@keyframes navIn{from{transform:translateX(100%)}}
+@keyframes navInL{from{transform:translateX(-100%)}}
+@media (min-width:800px) and (pointer:coarse){#nav a.nw{min-height:42px}#nav details>summary{min-height:42px}}
+
+/* ---------- search box, recent chips, overall progress ---------- */
+#nav .nvq{position:static;background:transparent;padding:0 .1rem .65rem;margin:0}
+#nav .nvq .in{width:100%;min-height:40px;border:1px solid var(--bd);border-radius:12px;color:var(--tx);font-size:.9rem}
+#nav .nvq .in::placeholder{color:var(--mut);opacity:1}
+#nav .nvq .in:focus{border-color:var(--acc);outline:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 20%,transparent)}
+#nav .nrec{display:flex;flex-wrap:wrap;gap:.3rem;align-items:center;padding:0 .2rem .65rem}
+#nav .nrec .mut{width:100%;font-size:.72rem;font-weight:700;color:var(--mut)}
+#nav .nrec .mapchip{background:var(--soft);color:var(--nav-tx);border:1px solid var(--bd);font-weight:600;font-size:.76rem}
+#nav .nrec .mapchip:hover{background:var(--chip);text-decoration:none;color:var(--pri)}
+#nav .nrec .mapchip.on{background:var(--chip);border-color:var(--acc);color:var(--pri)}
+#nav .nvp{display:grid;gap:.35rem;margin:.5rem .1rem .6rem;padding:.65rem .8rem .75rem;border-radius:14px;border:1px solid var(--bd);background:var(--soft);font-size:.78rem;color:var(--mut)}
+#nav .nvp .bar{height:6px;margin:0;background:var(--th)}
+#nav .nvp .bar i{background:linear-gradient(90deg,var(--acc),var(--pri2));border-radius:6px}
+#nav .pc{flex:none;background:var(--soft);color:var(--mut);border:1px solid var(--bd);border-radius:999px;font-size:.72rem;font-weight:600;padding:0 .5rem;min-width:2.5rem;text-align:center;font-variant-numeric:tabular-nums;direction:ltr}
+
+/* ---------- shared summary behaviour: one chevron for every level ---------- */
+#nav summary{list-style:none;display:flex;align-items:center;gap:.5rem;cursor:pointer;color:var(--nav-tx);transition:background-color .12s;-webkit-user-select:none;user-select:none}
+#nav summary::-webkit-details-marker{display:none}
+#nav summary:hover{background:var(--nav-hov)}
+#nav details>summary>span:first-child{flex:1;min-width:0}
+#nav summary::after{content:"";width:.45rem;height:.45rem;flex:none;margin-inline:.2rem .3rem;border:solid var(--nav-dim);border-width:0 2px 2px 0;border-radius:1px;transform:translateY(-2px) rotate(45deg);transition:transform .16s}
+#nav details:not([open])>summary::after{transform:rotate(135deg)}
+:root[dir=ltr] #nav details:not([open])>summary::after{transform:rotate(-45deg)}
+
+/* ---------- L1 · section ---------- */
+#nav details.ngs{margin:.4rem 0 .15rem}
+#nav details.ngs>summary{min-height:44px;padding:.5rem .75rem;border-radius:12px;border:1px solid var(--bd);background:var(--soft);font-size:1rem;font-weight:800;color:var(--pri2)}
+#nav details.ngs>summary:hover{background:var(--chip)}
+#nav details.ngs[open]>summary{background:var(--chip);border-color:var(--acc);color:var(--pri);box-shadow:inset 4px 0 0 var(--acc)}
+:root[dir=rtl] #nav details.ngs[open]>summary{box-shadow:inset -4px 0 0 var(--acc)}
+
+/* ---------- L2 · group ---------- */
+#nav details.ngg{margin:.3rem .1rem .15rem;margin-inline-start:.7rem;padding-inline-start:.45rem;border-inline-start:2px solid var(--nav-rail)}
+#nav details.ngg>summary{min-height:36px;padding:.3rem .55rem;border-radius:9px;font-size:.88rem;font-weight:700;color:var(--pri2)}
+#nav details.ngg>summary>span:first-child::before{content:"";display:inline-block;width:.42rem;height:.42rem;margin-inline-end:.45rem;border-radius:2px;background:var(--acc);vertical-align:middle}
+#nav details.ngg[open]>summary{background:color-mix(in srgb,var(--acc) 9%,transparent);color:var(--pri)}
+#nav details.ngg>summary .pc{background:none;border-color:transparent;padding:0;min-width:0}
+
+/* ---------- L3 · worksheet rows ---------- */
+#nav a{color:var(--nav-tx);transition:background-color .12s,color .12s}
+#nav a:hover{background:var(--nav-hov);color:var(--tx);text-decoration:none}
+#nav a.nw{display:grid;grid-template-columns:14px minmax(3.1rem,max-content) minmax(0,1fr) auto;align-items:start;column-gap:.5rem;position:relative;
+  padding:.38rem .55rem;min-height:34px;border-radius:9px;font-size:.84rem;line-height:1.5}
+#nav a.nw .nd{color:var(--nav-dim);font-weight:700;font-size:.78rem;line-height:1.7;direction:ltr;unicode-bidi:isolate;text-align:start;font-variant-numeric:tabular-nums}
+#nav a.nw .nt{color:var(--nav-tx);font-weight:600;white-space:normal;overflow:hidden;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}
+#nav a.nw:hover .nd,#nav a.nw:focus-visible .nd{color:var(--pri)}
+#nav a.nw:hover .nt,#nav a.nw:focus-visible .nt{color:var(--tx)}
+#nav a.nwa .rk{color:var(--hi);font-size:.64rem;align-self:center}
+/* the open worksheet */
+#nav a.nw[aria-current=page]{background:var(--nav-on-bg);outline:1px solid var(--acc);outline-offset:-1px}
+#nav a.nw[aria-current=page]::before{content:"";position:absolute;inset-block:.35rem;inset-inline-start:0;width:3px;border-radius:3px;background:var(--acc)}
+#nav a.nw[aria-current=page] .nd,#nav a.nw[aria-current=page] .nt{color:var(--pri);font-weight:800}
+/* completion dot: empty → half → three-quarters → ✓ */
+#nav a.nw .dot{position:relative;width:14px;height:14px;flex:none;margin-top:4px;border-radius:50%;background:transparent;border:1.6px solid var(--bd2);box-shadow:none}
+#nav a.nw.st-pg .dot{border-color:var(--st-pg);background:conic-gradient(var(--st-pg) 0 50%,transparent 0)}
+#nav a.nw.st-rv .dot{border-color:var(--st-rv);background:conic-gradient(var(--st-rv) 0 75%,transparent 0)}
+#nav a.nw.st-dn .dot{border-color:var(--st-dn);background:var(--st-dn)}
+#nav a.nw.st-dn .dot::after{content:"";position:absolute;left:50%;top:46%;width:3.5px;height:7px;border:solid var(--nav-check);border-width:0 1.8px 1.8px 0;transform:translate(-50%,-55%) rotate(40deg)}
+
+/* ---------- recycle bin + extra tools ---------- */
+#nav .nrb{display:flex;align-items:center;justify-content:space-between;margin:.8rem .1rem .25rem;padding:.5rem .8rem;border-radius:12px;border:1px solid var(--nav-line);font-size:.875rem;min-height:42px}
+#nav .nrb:hover{background:var(--nav-hov)}
+#nav details.ngl{margin-top:.35rem}
+#nav details.ngl>summary{min-height:42px;padding:.4rem .65rem;border-radius:12px;color:var(--mut);font-size:.9rem;font-weight:600}
+#nav .nlg{color:var(--mut);font-size:.72rem;font-weight:700;padding:.7rem .7rem .2rem}
+#nav .nlg:not(:first-of-type){border-top:1px solid var(--nav-line);margin:.45rem .4rem 0;padding-inline:.3rem}
+#nav details.ngl>a{display:flex;align-items:center;font-size:.875rem;min-height:38px;padding:.3rem .65rem;margin-inline:.1rem;border-radius:9px;line-height:1.5}
+#nav details.ngl>a>span{min-width:0;overflow-wrap:anywhere}
+}
