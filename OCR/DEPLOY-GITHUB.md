@@ -9,7 +9,7 @@
 cd doc-rebuilder-github
 git init -b main
 git add .
-git commit -m "Doc Rebuilder v2.1"
+git commit -m "Doc Rebuilder v2.2"
 git remote add origin https://github.com/USERNAME/REPO.git
 git push -u origin main
 ```

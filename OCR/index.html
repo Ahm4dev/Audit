@@ -88,7 +88,7 @@ main.ws{flex:1;display:flex;min-width:0;min-height:0}
 .ed [data-role=hf],.ed [data-role=pn]{color:#666;background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(0,0,0,.02) 6px 12px)}
 .ed table{border-collapse:collapse;margin:4pt 0;table-layout:fixed;max-width:100%}
 .ed td,.ed th{padding:1.5pt 4pt;vertical-align:top;overflow-wrap:break-word}
-.ed table[data-src=stream] td{outline:1px dotted #c9c4b8}
+.ed table[data-src=stream] td{outline:1px dashed rgba(150,145,130,.35);outline-offset:-1px}
 .ed table.tsel,.ed td.csel{box-shadow:inset 0 0 0 2px var(--ac)}
 .ed figure{margin:4pt 0;text-align:center}.ed figure img{max-width:100%;height:auto}
 .ed .mc{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:18pt;margin:4pt 0}
@@ -712,6 +712,15 @@ const IMG = {
     const sw = k % 2, o = IMG.canvas(sw ? cv.height : cv.width, sw ? cv.width : cv.height), c = o.getContext('2d');
     c.translate(o.width / 2, o.height / 2); c.rotate(k * Math.PI / 2); c.drawImage(cv, -cv.width / 2, -cv.height / 2); return o;
   },
+  /** text-line axis from projection profiles: >1 for horizontal lines, <1 when the page is turned 90° */
+  lineAxis(cv) {
+    const f = Math.min(1, 900 / Math.max(cv.width, cv.height)), sm = IMG.scaled(cv, f), G = IMG.gray(sm); IMG.free(sm);
+    const { w, h, d } = G, y0 = Math.floor(h * 0.05), y1 = Math.floor(h * 0.95), x0 = Math.floor(w * 0.05), x1 = Math.floor(w * 0.92);
+    const R = new Float64Array(y1 - y0), C = new Float64Array(x1 - x0);
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) if (d[y * w + x] < 140) { R[y - y0]++; C[x - x0]++; }
+    const m = p => { let s = 0; for (const v of p) s += v; const mu = s / p.length || 1e-9; let t = 0; for (let i = 1; i < p.length; i++) t += Math.abs(p[i] - p[i - 1]) / mu; return t / Math.max(1, p.length - 1); };
+    return m(R) / Math.max(1e-6, m(C));
+  },
   scaled(cv, f) { const o = IMG.canvas(cv.width * f, cv.height * f), c = o.getContext('2d'); c.imageSmoothingQuality = 'high'; c.drawImage(cv, 0, 0, o.width, o.height); return o; },
   crop(cv, x, y, w, h) { x = Math.max(0, Math.floor(x)); y = Math.max(0, Math.floor(y)); w = Math.min(cv.width - x, Math.ceil(w)); h = Math.min(cv.height - y, Math.ceil(h)); const o = IMG.canvas(Math.max(1, w), Math.max(1, h)); o.getContext('2d').drawImage(cv, x, y, w, h, 0, 0, w, h); return o; },
 
@@ -877,7 +886,7 @@ let CUR_DIR = 'ltr';
   /** Visual (x-sorted) items → logical order runs with spaces, handling RTL/LTR mixing. */
   function logicalOrder(items, rtl) {
     const a = items.slice().sort((p, q) => p.x - q.x);
-    const isAr = it => AR_RE.test(it.s), isLtr = it => !AR_RE.test(it.s) && /[A-Za-z0-9٠-٩۰-۹]/.test(it.s);
+    const arL = it => AR_RE.test(it.s.replace(/[\u0660-\u066C\u06F0-\u06F9]/g, '')), isAr = arL, isLtr = it => !arL(it) && /[A-Za-z0-9٠-٩۰-۹]/.test(it.s);
     if (rtl) {
       a.reverse(); const o = [];
       for (let i = 0; i < a.length;) {
@@ -898,6 +907,23 @@ let CUR_DIR = 'ltr';
     return o;
   }
   function styleKey(it) { return [it.b ? 1 : 0, it.i ? 1 : 0, it.u ? 1 : 0, it.color || '', Math.round((it.fs || 0) * 2), it.font || '', it.href || '', it.lc ? uid() : ''].join('|'); }
+  /** Some producers (e.g. MS Print-to-PDF) store bracket glyphs by their visual shape inside RTL text, so the logical
+   *  string comes out as ")text(". If the bracket sequence is reversed-balanced, swap every bracket in the block. */
+  const MIR = { '(': ')', ')': '(', '[': ']', ']': '[', '{': '}', '}': '{' };
+  function bracketsReversed(t) {
+    let d = 0, first = null, bad = false;
+    for (const ch of t) { if (ch === '(' || ch === '[' || ch === '{') { first = first || 'o'; d++; } else if (ch === ')' || ch === ']' || ch === '}') { first = first || 'c'; d--; if (d < 0) bad = true; } }
+    if (first !== 'c' || !bad || d !== 0) return false;
+    let e = 0; for (const ch of t) { if (ch === ')' || ch === ']' || ch === '}') e++; else if (ch === '(' || ch === '[' || ch === '{') { e--; if (e < 0) return false; } }
+    return e === 0;
+  }
+  function fixBrackets(runs) {
+    const t = runs.map(r => r.t || '').join('');
+    if (!/[()\[\]{}]/.test(t) || !bracketsReversed(t)) return false;
+    for (const r of runs) if (r.t) r.t = r.t.replace(/[()\[\]{}]/g, c => MIR[c]);
+    return true;
+  }
+  LAYOUT.fixBrackets = fixBrackets; LAYOUT.bracketsReversed = bracketsReversed;
   function joinRuns(items, rtl) {
     const ord = logicalOrder(items, rtl);
     const runs = []; let prev = null;
@@ -916,6 +942,8 @@ let CUR_DIR = 'ltr';
       prev = it;
     }
     for (const r of runs) r.t = r.t.replace(/[  ]{2,}/g, ' ');
+    if (LAYOUT.stripTatweel) for (const r of runs) r.t = r.t.replace(/\u0640+/g, '');
+    fixBrackets(runs);
     if (runs.length) { runs[0].t = runs[0].t.replace(/^\s+/, ''); runs[runs.length - 1].t = runs[runs.length - 1].t.replace(/\s+$/, ''); }
     return runs.filter(r => r.t);
   }
@@ -1034,6 +1062,7 @@ let CUR_DIR = 'ltr';
       else { cur.push({ t: '\n', br: 1 }); cur.push(...runs); }
     });
     cell.runs = paras[0] || [];
+    fixBrackets(cell.runs);
     cell.text = cell.runs.map(r => r.t).join('');
     // alignment
     if (cell.lines.length) {
@@ -1055,7 +1084,19 @@ let CUR_DIR = 'ltr';
   }
   function lineRuns(l, rtl) {
     // a line may contain several chunks: join in logical order with a tab between chunks
-    const ch = l.chunks.slice().sort((a, b) => a.x0 - b.x0); if (rtl) ch.reverse();
+    const ch = l.chunks.slice().sort((a, b) => a.x0 - b.x0);
+    if (ch.length > 1) {
+      // digit groups of one amount split into chunks (scans): always left-to-right, joined by a space
+      const tx = ch.map(c => c.runs.map(r => r.t).join('').trim().replace(/[٬,]$/, ''));
+      const D = '[0-9٠-٩]';
+      const all = tx.join(' '), par = (all.match(/[()]/g) || []).length, core = all.replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (par <= 2 && new RegExp('^' + D + '{1,3}( ' + D + '{3})+$').test(core)) {
+        const r0 = Object.assign({}, ch[0].runs[0]); r0.t = par ? '(' + core + ')' : core;
+        const lc = ch.flatMap(c => c.runs).find(r => r.lc); if (lc) r0.lc = lc.lc;
+        return [r0];
+      }
+    }
+    if (rtl) ch.reverse();
     const out = [];
     ch.forEach((c, i) => { if (i) out.push({ t: '\t', tab: 1 }); out.push(...c.runs.map(r => Object.assign({}, r))); });
     return out;
@@ -1156,33 +1197,57 @@ let CUR_DIR = 'ltr';
       const listLike = multi.filter(x => x.chunks.length === 2 && MARK.test(startChunk(x).text.trim())).length >= 0.6 * multi.length;
       if (multi.length >= 2 && !listLike) {
         const t = buildStream(g, multi, bounds, ctx);
-        if (t && t.conf >= th && (multi.length >= 3 || t.numRatio > 0.3 || th < 0.6)) { out.push(t); i = j; continue; }
+        if (t && ((t.conf >= th && (multi.length >= 3 || t.numRatio > 0.3 || th < 0.6)) || (multi.length >= 2 && t.alignment >= 0.95 && t.nc <= 3 && t.avgLen <= 32))) { out.push(t); i = j; continue; }
       }
       i++;
     }
     return out;
   }
   function buildStream(g, multi, bounds, ctx) {
-    // typical rows = rows with the modal chunk count (≥2)
-    const counts = multi.map(l => l.chunks.length), mode = +Object.entries(counts.reduce((m, c) => (m[c] = (m[c] || 0) + 1, m), {})).sort((a, b) => b[1] - a[1] || b[0] - a[0])[0][0];
-    const typ = multi.filter(l => l.chunks.length >= mode);
-    let iv = typ.flatMap(l => l.chunks.map(c => [c.x0, c.x1])).sort((a, b) => a[0] - b[0]);
-    const cols = [];
-    for (const [a, b] of iv) { const l = cols[cols.length - 1]; if (l && a <= l[1] + 0.5) l[1] = Math.max(l[1], b); else cols.push([a, b]); }
+    // Column separators from x-coverage: a vertical band where (almost) no row has ink is a gutter.
+    // Working on items rather than chunks lets a header that spans two columns (or two cells glued together
+    // by a small gap) not erase the gutter that every other row shows.
+    const tx0 = Math.min(...g.map(l => l.x0)), tx1 = Math.max(...g.map(l => l.x1)), RES = 0.5;
+    const nb = Math.max(1, Math.ceil((tx1 - tx0) / RES) + 1), cov = new Uint16Array(nb);
+    const fsMed = median(g.map(l => l.fs)) || 10;
+    for (const l of multi) { const mark = new Uint8Array(nb); for (const it of l.items) { if (!it.s.trim()) continue; const a = Math.max(0, Math.floor((it.x - tx0) / RES)), b = Math.min(nb - 1, Math.ceil((it.x2 - tx0) / RES)); for (let k = a; k <= b; k++) mark[k] = 1; } for (let k = 0; k < nb; k++) cov[k] += mark[k]; }
+    const noise = Math.floor(0.12 * multi.length), minGap = Math.max(4, 0.55 * fsMed) / RES;
+    const cols = []; let s = -1, gs = -1;
+    for (let k = 0; k <= nb; k++) {
+      const busy = k < nb && cov[k] > noise;
+      if (busy) { if (s < 0) s = k; if (gs >= 0) gs = -1; continue; }
+      if (s >= 0) { if (gs < 0) gs = k; if (k - gs >= minGap || k === nb) { cols.push([tx0 + s * RES, tx0 + gs * RES]); s = -1; gs = -1; } }
+    }
+    if (s >= 0) cols.push([tx0 + s * RES, tx1]);
     if (cols.length < 2) return null;
-    // assign every chunk to column span
+    const colOf = it => { const ix = []; cols.forEach((k, n) => { const o = ov(it.x, it.x2, k[0], k[1]); if (o > Math.min(1.5, 0.25 * (it.x2 - it.x))) ix.push(n); }); if (!ix.length) return null; return [ix[0], ix[ix.length - 1]]; };
+    const nearestCol = it => { const cx = (it.x + it.x2) / 2; let best = 0, bd = 1e9; cols.forEach((k, n) => { const d = cx < k[0] ? k[0] - cx : cx > k[1] ? cx - k[1] : 0; if (d < bd) { bd = d; best = n; } }); return [best, best]; };
     let fit = 0, tot = 0, numCells = 0, txtLen = [];
+    const gutters = cols.slice(1).map((k, n) => [cols[n][1], k[0]]);
+    const rangeOf = (x0, x1) => { const ix = []; cols.forEach((k, n) => { const o = ov(x0, x1, k[0], k[1]); if (o > Math.min(2, 0.3 * (x1 - x0)) || o > 0.5 * (k[1] - k[0])) ix.push(n); }); return ix.length ? [ix[0], ix[ix.length - 1]] : nearestCol({ x: x0, x2: x1 }); };
     const rows = g.map(l => {
+      const groups = [];
+      // split each chunk only where this row itself has whitespace inside a gutter
+      for (const ch of l.chunks.slice().sort((p, q) => p.x0 - q.x0)) {
+        const its = ch.items.filter(it => it.s.trim()).sort((p, q) => p.x - q.x); if (!its.length) continue;
+        let piece = [its[0]];
+        const flush = () => { const x0 = Math.min(...piece.map(i => i.x)), x1 = Math.max(...piece.map(i => i.x2)); const [a, b] = rangeOf(x0, x1); const last = groups[groups.length - 1]; if (last && a <= last.b && b >= last.a) { last.items.push(...piece); last.a = Math.min(last.a, a); last.b = Math.max(last.b, b); } else groups.push({ a, b, items: piece.slice() }); };
+        for (let k = 1; k < its.length; k++) {
+          const gap0 = piece.reduce((m, i) => Math.max(m, i.x2), -1e9), gap1 = its[k].x;
+          if (gap1 - gap0 >= 0.6 * l.fs && gutters.some(gt => ov(gap0, gap1, gt[0], gt[1]) > 0.5)) { flush(); piece = [its[k]]; }
+          else piece.push(its[k]);
+        }
+        flush();
+      }
+      // merge groups that ended up in the same column range after spanning
       const cells = [];
-      for (const c of l.chunks) {
-        const ix = cols.map((k, n) => ov(c.x0, c.x1, k[0], k[1]) > Math.min(1, 0.2 * (c.x1 - c.x0)) ? n : -1).filter(n => n >= 0);
-        let a, b;
-        if (!ix.length) { const cx = (c.x0 + c.x1) / 2; let best = 0, bd = 1e9; cols.forEach((k, n) => { const d = cx < k[0] ? k[0] - cx : cx > k[1] ? cx - k[1] : 0; if (d < bd) { bd = d; best = n; } }); a = b = best; }
-        else { a = ix[0]; b = ix[ix.length - 1]; }
-        tot++; if (a === b) fit++;
-        if (isNumericTxt(c.text) || isDash(c.text)) numCells++;
-        txtLen.push(c.text.length);
-        cells.push({ a, b, c });
+      for (const gr of groups) {
+        const ch = { items: gr.items, x0: Math.min(...gr.items.map(i => i.x)), x1: Math.max(...gr.items.map(i => i.x2)) };
+        chunkInfo(ch, l, l.dir || ctx.pageDir);
+        tot++; if (gr.a === gr.b) fit++;
+        if (isNumericTxt(ch.text) || isDash(ch.text)) numCells++;
+        txtLen.push(ch.text.length);
+        cells.push({ a: gr.a, b: gr.b, c: ch });
       }
       return { l, cells };
     });
@@ -1191,7 +1256,6 @@ let CUR_DIR = 'ltr';
     const conf = 0.45 * alignment + 0.25 * Math.min(1, multi.length / 4) + 0.2 * Math.min(1, numRatio * 1.6) + 0.1 * (avgLen < 28 ? 1 : 0);
     // build grid
     const nc = cols.length, cells = [], rowH = [];
-    const tx0 = Math.min(...g.map(l => l.x0)), tx1 = Math.max(...g.map(l => l.x1));
     const edges = [tx0]; for (let k = 1; k < nc; k++) edges.push((cols[k - 1][1] + cols[k][0]) / 2); edges.push(tx1);
     let r = 0; const rowsOut = [];
     for (let k = 0; k < rows.length; k++) {
@@ -1199,7 +1263,9 @@ let CUR_DIR = 'ltr';
       // wrapped text continuation: single non-numeric chunk directly under a text cell of previous row
       if (prevRow && row.cells.length === 1 && row.l.top - prevRow.l.bot < 0.32 * row.l.fs) {
         const ce = row.cells[0], pc = prevRow.cells.find(x => x.a === ce.a && x.b === ce.b);
-        if (pc && !isNumericTxt(ce.c.text) && !isNumericTxt(pc.c.text)) { pc.extra = (pc.extra || []).concat(ce.c); prevRow.l2 = row.l; continue; }
+        const col = cols[pc ? pc.a : 0], cw = col ? col[1] - col[0] : 0, rtlC = (pc && pc.c.dir || ctx.pageDir) === 'rtl';
+        const wrapped = pc && cw > 0 && (rtlC ? pc.c.x0 <= col[0] + 0.2 * cw : pc.c.x1 >= col[1] - 0.2 * cw);
+        if (pc && wrapped && !isNumericTxt(ce.c.text) && !isNumericTxt(pc.c.text)) { pc.extra = (pc.extra || []).concat(ce.c); prevRow.l2 = row.l; continue; }
       }
       rowsOut.push(row);
     }
@@ -1217,7 +1283,7 @@ let CUR_DIR = 'ltr';
       const nxt = rowsOut[ri + 1];
       rowH.push(nxt ? nxt.l.top - row.l.top : (row.l2 || row.l).bot - row.l.top + 2);
     });
-    const t = { kind: 'table', src: 'stream', conf: r1(conf), alignment, numRatio, x0: tx0, x1: tx1, y0: g[0].top, y1: g[g.length - 1].bot, top: g[0].top, bot: g[g.length - 1].bot, nr: rowsOut.length, nc, cells, colW: edges.slice(1).map((e, k) => e - edges[k]), rowH, lines: g };
+    const t = { kind: 'table', src: 'stream', conf: r1(conf), alignment, numRatio, avgLen, x0: tx0, x1: tx1, y0: g[0].top, y1: g[g.length - 1].bot, top: g[0].top, bot: g[g.length - 1].bot, nr: rowsOut.length, nc, cells, colW: edges.slice(1).map((e, k) => e - edges[k]), rowH, lines: g };
     return t;
   }
   /** horizontal rules inside/under stream tables become cell borders (e.g. total underlines) */
@@ -1275,6 +1341,7 @@ let CUR_DIR = 'ltr';
       }
       runs.push(...rs);
     });
+    fixBrackets(runs);
     const fs = median(L.flatMap(l => l.items.filter(i => i.s.trim()).map(i => i.fs))) || L[0].fs;
     const x0 = Math.min(...L.map(l => l.x0)), x1 = Math.max(...L.map(l => l.x1)), top = Math.min(...L.map(l => l.top)), bot = Math.max(...L.map(l => l.bot));
     const tol = Math.max(2.5, 0.35 * fs);
@@ -1355,6 +1422,7 @@ let CUR_DIR = 'ltr';
    */
   LAYOUT.build = function (P) {
     const opts = P.opts, W = P.W, H = P.H;
+    LAYOUT.stripTatweel = !!opts.normAr;
     let items = dedupe(P.items.filter(it => it.s && it.s.trim() && it.x2 > -5 && it.x < W + 5 && it.bot > -5 && it.top < H + 5));
     const pageText = items.map(i => i.s).join('');
     const ctx = { opts, W, H, img: P.img, imgCanvas: P.imgCanvas, k: P.k || 1, pageDir: dirOf(pageText) || 'ltr', ocr: P.ocr };
@@ -1684,6 +1752,7 @@ const VALID = {};
    pdfx: PDF text/vector extraction, OCR engine, page pipeline
    ===================================================================== */
 const PDFX = {};
+const FIN_MODEL_VERSION = '1';
 (() => {
   /* ---------------- vector graphics from operator list ---------------- */
   const mul = (m, n) => [m[0] * n[0] + m[2] * n[1], m[1] * n[0] + m[3] * n[1], m[0] * n[2] + m[2] * n[3], m[1] * n[2] + m[3] * n[3], m[0] * n[4] + m[2] * n[5] + m[4], m[1] * n[4] + m[3] * n[5] + m[5]];
@@ -1744,7 +1813,7 @@ const PDFX = {};
           // glyph-level repair of multi-character Arabic ligature glyphs (e.g. لا) that PDF.js reverses char-by-char
           let word = [];
           const flushW = () => { if (word.length > 1 && word.some(u => u.length > 1 && AR_RE.test(u))) { const W = [...word.join('')].reverse().join(''), R = word.slice().reverse().join(''); if (W !== R && AR_RE.test(R)) lig.set(W, R); } word = []; };
-          for (const x of arr) { if (!x || typeof x === 'number') { if (typeof x === 'number' && Math.abs(x) > 150) flushW(); continue; } const u = x.unicode || ''; if (!u || x.isSpace || /^\s+$/.test(u)) { flushW(); continue; } if (!AR_RE.test(u) && /[A-Za-z0-9]/.test(u)) { flushW(); continue; } word.push(u); }
+          for (const x of arr) { if (!x || typeof x === 'number') { if (typeof x === 'number' && Math.abs(x) > 150) flushW(); continue; } const u = x.unicode || ''; if (!u || x.isSpace || /^\s+$/.test(u)) { flushW(); continue; } if (!AR_RE.test(u)) { flushW(); continue; } word.push(/[\uFB50-\uFDFF\uFE70-\uFEFF]/.test(u) ? u.normalize('NFKC') : u); }
           flushW();
           break;
         }
@@ -1798,6 +1867,8 @@ const PDFX = {};
       const st = tc.styles[t.fontName] || {}, nm = (fo && fo.name) || st.fontFamily || '';
       const asc = st.ascent || 0.8, desc = Math.abs(st.descent || 0.2);
       let s = t.str; if (opts.normAr) s = normPresentation(s);
+      // MS "Print to PDF" fonts map the kashida (elongation) glyph to U+0467; treat it as tatweel so words stay whole
+      if (/\u0467/.test(s)) { s = s.replace(/\u0467/g, '\u0640'); t.dir = 'rtl'; }
       const b = !!(fo && (fo.bold || fo.black)) || /bold|black|heavy|\bbd\b|-bd|semibold|demi/i.test(nm);
       const it = !!(fo && fo.italic) || /italic|oblique/i.test(nm);
       if (Math.abs(ang) < 0.03) {
@@ -1883,7 +1954,23 @@ const PDFX = {};
       if (!this.numW) this.numW = (async () => { const T = await ensureTess(); const wopt = { workerPath: libURL('tessw'), corePath: libURL('tcore') }; Object.assign(wopt, tessDataOpts()); const w = await T.createWorker('eng', 1, wopt); await w.setParameters({ tessedit_pageseg_mode: '7', tessedit_char_whitelist: '0123456789,.()%-/' }); return w; })().catch(e => { this.numW = null; throw e; });
       const w = await this.numW; const r = await w.recognize(canvas, { user_defined_dpi: String(Math.round(dpi)) }, { text: true, blocks: false, hocr: false, tsv: false }); return r.data;
     },
-    async terminate() { const s = this.sched; this.sched = null; this.key = ''; if (s) { try { await s.terminate(); } catch (e) { } } if (this.numW) { try { (await this.numW).terminate(); } catch (e) { } this.numW = null; } }
+    /** Financial-digits model (Tesseract LSTM fine-tuned on Egyptian financial statements: Arabic-Indic & Latin amounts,
+     *  note references, dates). Shipped in libs/tessdata_fin; returns null when not installed. */
+    async fin() {
+      if (this._finTried) return this.finW;
+      this._finTried = true;
+      const base = (S.libBase || '').trim() || AUTO_LIB; if (!base) return this.finW = null;
+      const dir = base.replace(/\/?$/, '/') + 'tessdata_fin';
+      try { const r = await fetch(dir + '/fin.traineddata.gz', { method: 'HEAD', cache: 'no-store' }); if (!r.ok) return this.finW = null; } catch (e) { return this.finW = null; }
+      try {
+        const T = await ensureTess();
+        const w = await T.createWorker('fin', 1, { workerPath: libURL('tessw'), corePath: libURL('tcore'), langPath: dir, cachePath: 'docrebuild-fin-' + FIN_MODEL_VERSION });
+        await w.setParameters({ tessedit_pageseg_mode: '7', preserve_interword_spaces: '1' });
+        return this.finW = w;
+      } catch (e) { console.warn('fin model', e); return this.finW = null; }
+    },
+    async finRead(canvas, dpi) { const w = await this.fin(); if (!w) return null; const r = await w.recognize(canvas, { user_defined_dpi: String(Math.round(dpi)) }, { text: true, blocks: true, hocr: false, tsv: false }); return r.data; },
+    async terminate() { if (this.finW) { try { await this.finW.terminate(); } catch (e) { } } this.finW = null; this._finTried = false; const s = this.sched; this.sched = null; this.key = ''; if (s) { try { await s.terminate(); } catch (e) { } } if (this.numW) { try { (await this.numW).terminate(); } catch (e) { } this.numW = null; } }
   };
   /** language-data location: accurate float models (tessdata_best 4.1.0) or fast integer models; separate caches per model */
   function tessDataOpts() {
@@ -1906,7 +1993,7 @@ const PDFX = {};
         if (base === null || base < lb.y0 || base > lb.y1 + 2) base = lb.y1 - 0.22 * (lb.y1 - lb.y0);
         const fixAlt = t => AR_RE.test(t) && !/[A-Za-z0-9]/.test(t) && AR_RE.test(w.text) && t.length > 1 && [...t].reverse().join('') !== t && !w.text.includes(t) ? [...t].reverse().join('') : t;
         const alt = [...new Set((w.choices || []).map(c => c.text && fixAlt(c.text)).filter(t => t && t !== w.text))].slice(0, 3).join(' | ');
-        out.push({ text: w.text, conf: w.confidence, x0: bx.x0, y0: bx.y0, x1: bx.x1, y1: bx.y1, base, lineTop: lb.y0, lineBot: lb.y1, alt, lineText: l.text || '' });
+        out.push({ text: w.text, conf: w.confidence, x0: bx.x0, y0: bx.y0, x1: bx.x1, y1: bx.y1, base, lineTop: lb.y0, lineBot: lb.y1, alt, lineText: l.text || '', sym: (w.symbols || []).map(q => ({ t: q.text, c: q.confidence })) });
       }
     }
     return out;
@@ -1953,7 +2040,17 @@ const PDFX = {};
     // orientation: try other rotations on a reduced copy when recognition is weak
     // quality score = mean confidence weighted by the share of confident words (upside-down text still gets ~55–65% mean confidence)
     const qScore = (d, ws) => (d.confidence || 0) * (ws.length ? ws.filter(w => w.conf >= 80).length / ws.length : 0);
-    if (o.pOrient !== false && (conf < 78 || words.length < 4)) {
+    // orientation check only when the page reads as mostly garbage (low-confidence numbers alone must not trigger it)
+    const goodShare = ws => ws.length ? ws.filter(w => w.conf >= 80 && /[\u0621-\u064Aa-zA-Z]{3,}/.test(w.text)).length / ws.length : 0;
+    // a page turned by 90° (landscape tables scanned upright) is recognised from its line axis, then 90° vs 270° by OCR quality
+    if (o.pOrient !== false && IMG.lineAxis(P.proc) < 0.8) {
+      let best = null;
+      for (const k of [1, 3]) { const r = IMG.rot90(P.proc, k); const d = await OCR.recognize(r, dpi); IMG.free(r); const ws = wordsOf(d), q = qScore(d, ws); if (!best || q > best.q) best = { k, q }; }
+      rotK = best.k; const rc = IMG.rot90(colorCv, rotK); if (P.color !== colorCv) IMG.free(P.color); IMG.free(P.proc);
+      P = prep(rc, o); if (P.color !== rc) IMG.free(rc);
+      data = await OCR.recognize(P.proc, dpi); words = wordsOf(data); conf = data.confidence || 0;
+    }
+    else if (o.pOrient !== false && (goodShare(words) < 0.2 || words.length < 4)) {
       const small = IMG.scaled(P.proc, 0.5); const w0 = wordsOf(await OCR.recognize(small, dpi / 2)); let best = { k: 0, q: qScore({ confidence: mean(w0.map(w => w.conf)) }, w0), n: w0.length };
       for (const k of [2, 1, 3]) { const r = IMG.rot90(small, k); const d = await OCR.recognize(r, dpi / 2); IMG.free(r); const ws = wordsOf(d), q = qScore(d, ws); if (q > best.q * 1.5 + 5 && ws.length >= 3) best = { k, q, n: ws.length }; if (k === 2 && best.k === 2) break; }
       IMG.free(small);
@@ -1972,8 +2069,171 @@ const PDFX = {};
       else { IMG.free(P2.proc); if (P2.color !== src) IMG.free(P2.color); }
       if (src !== colorCv && src !== P.color) IMG.free(src);
     }
+    // financial-digits pass: stock Arabic models cannot output most Arabic-Indic digits (٢–٩ are missing from their
+    // character set), so every span of numeric-looking words is re-read with the fine-tuned financial model.
+    let finUsed = false;
+    // pages printed with Western digits (1,234,567) keep the Latin numeric refinement below
+    const latinPage = (() => { const L = words.filter(w => w.conf >= 70 && /^\(?[0-9][0-9,.]*[0-9]\)?%?$/.test(w.text) && /[0-9]{3}/.test(w.text)).length, A = words.filter(w => /[\u0660-\u0669]/.test(w.text)).length; return L >= 5 && L > 2 * A; })();
+    if (/ara/.test(S.lang) && !pdfOut && o.finModel !== false && !latinPage && await OCR.fin()) {
+      finUsed = true;
+      // rows = words grouped by vertical overlap (the stock model often splits one printed row into several "lines")
+      // label zone: in Arabic statements the captions sit on the right; anything well left of where confident long
+      // Arabic words start is a number area even if the text model produced Arabic-looking junk there
+      const longAr = words.filter(w => /[\u0621-\u063A\u0641-\u064A]{4,}/.test(w.text) && w.conf >= 75).map(w => w.x0).sort((a, b) => a - b);
+      const labelX = longAr.length >= 6 ? longAr[Math.floor(longAr.length * 0.1)] : -1;
+      const trusted = w => !/[0-9\u0660-\u0669]/.test(w.text) && !(labelX > 0 && w.x1 < labelX - 2) && ((/[\u0621-\u063A\u0641-\u064A]{3,}/.test(w.text) && w.conf >= 72) || (/[a-z]{3,}/.test(w.text) && w.conf >= 85));
+      // digit pieces of one printed amount (thousand groups separated by spaces) → one value, regrouped by 3
+      const DG = '[0-9\u0660-\u0669]';
+      /** the digit model sometimes inserts a spurious digit (mostly a thin '١' from noise) into a 3-digit group:
+       *  estimate the digit count of each group from its width and drop the weakest symbols */
+      const fixWidth = fw => {
+        const DGR = new RegExp('^' + DG + '+$'), w3 = fw.filter(q => DGR.test(q.text) && q.text.length === 3).map(q => (q.x1 - q.x0) / 3);
+        if (!w3.length) return;
+        const dw = median(w3);
+        for (const q of fw) {
+          if (!DGR.test(q.text) || q.text.length < 4) continue;
+          const exp = Math.max(1, Math.round((q.x1 - q.x0) / dw));
+          if (q.text.length <= exp) continue;
+          let ch = [...q.text], sc = (q.sym && q.sym.length === ch.length) ? q.sym.map(z => z.c) : ch.map(() => 50);
+          sc = sc.map((c, i) => c - (ch[i] === '١' || ch[i] === '1' ? 15 : 0));
+          while (ch.length > exp && ch.length > 3) { let k = 0; sc.forEach((c, i) => { if (c < sc[k]) k = i; }); ch.splice(k, 1); sc.splice(k, 1); }
+          if (ch.join('') !== q.text) { q.text = ch.join(''); q.conf = Math.min(q.conf, 40); }
+        }
+      };
+      const joinable = (a, b) => new RegExp('^\\(?' + DG + '+( ' + DG + '+)*$').test(a) && new RegExp('^' + DG + '+\\)?$').test(b);
+      const regroup = q => { const m = q.text.match(new RegExp('^(\\(?)(' + DG + '+(?: ' + DG + '+)+)(\\)?)$')); if (!m) return; const digits = m[2].replace(/ /g, ''); q.text = m[1] + digits.replace(/\B(?=(.{3})+$)/g, ' ') + m[3]; };
+      // rows: cluster word centres with a fixed tolerance from the typical text height (junk boxes from the text
+      // model can be very tall and would otherwise glue two printed rows together)
+      const hm = median(words.filter(w => w.conf > 50).map(w => w.y1 - w.y0)) || median(words.map(w => w.y1 - w.y0)) || 20;
+      const ws0 = words.slice().sort((a, b) => (a.y0 + a.y1) - (b.y0 + b.y1)), rows = [];
+      for (const w of ws0) {
+        const cyw = (w.y0 + w.y1) / 2; let r = null;
+        for (let k = rows.length - 1; k >= 0 && k >= rows.length - 3; k--) { if (Math.abs(rows[k].cy - cyw) < 0.45 * hm) { r = rows[k]; break; } }
+        if (r) { r.ws.push(w); r.cy = median(r.ws.map(q => (q.y0 + q.y1) / 2)); } else rows.push({ ws: [w], cy: cyw });
+      }
+      for (const R of rows) { R.y0 = R.cy - 0.62 * hm; R.y1 = R.cy + 0.62 * hm; }
+      const out = [];
+      for (const R of rows) {
+        const h = hm;
+        const tw = R.ws.filter(trusted).sort((a, b) => a.x0 - b.x0);
+        const xs0 = Math.min(...R.ws.map(w => w.x0)), xs1 = Math.max(...R.ws.map(w => w.x1));
+        // complement of trusted text = candidate number regions
+        const iv = []; let x = xs0 - 1;
+        for (const t of tw) { if (t.x0 - x > 0.8 * h) iv.push([x, t.x0]); x = Math.max(x, t.x1); }
+        if (xs1 - x > 0.8 * h) iv.push([x, xs1 + 1]);
+        const clusters = [];
+        for (const [a, b] of iv) {
+          const ins = R.ws.filter(w => !trusted(w) && (w.x0 + w.x1) / 2 > a && (w.x0 + w.x1) / 2 < b).sort((p1, p2) => p1.x0 - p2.x0);
+          let cl = null;
+          for (const w of ins) { if (cl && w.x0 - cl[cl.length - 1].x1 < 1.8 * h) cl.push(w); else { cl = [w]; clusters.push(cl); } }
+        }
+        R.clusters = clusters;
+        for (const inside of clusters) {
+          const sx0 = Math.min(...inside.map(w => w.x0)), sx1 = Math.max(...inside.map(w => w.x1));
+          const pad = Math.max(4, Math.round(0.3 * hm));
+          { // only number-like spans: isolated from the text by a wide gap (tables), suspicious to the text model, and not a lone mark
+            const lN0 = Math.max(-1e9, ...R.ws.filter(w => !inside.includes(w) && w.x1 <= sx0 + 1).map(w => w.x1)), rN0 = Math.min(1e9, ...R.ws.filter(w => !inside.includes(w) && w.x0 >= sx1 - 1).map(w => w.x0));
+            const hasD = inside.some(w => /[0-9\u0660-\u0669]/.test(w.text));
+            const iso = Math.max(sx0 - lN0, rN0 - sx1) >= 2 * hm, sus = hasD || inside.some(w => /[A-Za-z]/.test(w.text) || w.conf < 60);
+            if (!iso || !sus || (!hasD && sx1 - sx0 < 1.2 * hm)) continue;
+          }
+          // widen towards the neighbouring words: the text model sometimes misses a whole digit group at the edge
+          const lN = Math.max(-1e9, ...R.ws.filter(w => !inside.includes(w) && w.x1 <= sx0 + 1).map(w => w.x1)), rN = Math.min(1e9, ...R.ws.filter(w => !inside.includes(w) && w.x0 >= sx1 - 1).map(w => w.x0));
+          const ex0 = Math.max(lN + 2, sx0 - 2.2 * hm, 0), ex1 = Math.min(rN - 2, sx1 + 2.2 * hm, P.proc.width);
+          const cx = Math.max(0, Math.floor(Math.min(sx0 - pad, ex0))), cy = Math.max(0, Math.floor(R.y0 - 0.15 * hm));
+          const c = IMG.crop(P.proc, cx, cy, Math.max(sx1 + pad, ex1) - cx, R.y1 - R.y0 + 0.3 * hm);
+          try {
+            const d = await OCR.finRead(c, dpi);
+            const fw = wordsOf(d).map(q => Object.assign(q, { text: q.text.replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '').replace(/([0-9\u0660-\u0669])[\u066C,.]+(?=[0-9\u0660-\u0669])/g, '$1') })).filter(q => q.text);
+            if (window.DEBUG_FIN) console.log('FIN1', inside.map(w => w.text).join(' '), '=>', fw.map(q => q.text + '@' + Math.round(q.conf)).join(' | '), 'conf', Math.round(d.confidence));
+            if (!fw.length || !fw.some(q => /[0-9\u0660-\u0669]/.test(q.text)) || fw.some(q => /[\u0621-\u063A\u0641-\u064A]{3,}/.test(q.text))) continue;
+            { // words found only in the widened margins must look like a clean digit group (not noise, rules or brackets)
+              const lo = sx0 - pad - cx, hi = sx1 + pad - cx, AG = /^[\u0660-\u0669]{1,3}\)?$/, RG = /^\(?[\u0660-\u0669]{3}\)?$/;
+              fixWidth(fw);
+              const core = fw.filter(q => { const m = (q.x0 + q.x1) / 2; return m >= lo && m <= hi; });
+              const near = q => core.some(c => Math.min(Math.abs(q.x0 - c.x1), Math.abs(c.x0 - q.x1)) < 1.6 * hm);
+              for (let k = fw.length - 1; k >= 0; k--) { const q = fw[k], m = (q.x0 + q.x1) / 2; if (m < lo && !(AG.test(q.text) && q.conf >= 60)) fw.splice(k, 1); else if (m > hi && !(RG.test(q.text) && (q.conf >= 60 || (q.conf >= 10 && near(q))))) fw.splice(k, 1); }
+              if (!fw.length) continue;
+            }
+            fixWidth(fw); const fwH = median(fw.filter(q => q.text.replace(/[^0-9\u0660-\u0669]/g, '').length >= 2).map(q => q.y1 - q.y0)) || 0;
+            // low confidence is accepted only when the text model produced junk there and the digit read is a well-formed amount
+            const junk = inside.some(w => /[A-Za-z\u0621-\u064A]/.test(w.text));
+            const wf = new RegExp('^\\(?' + DG + '{1,3}( ?' + DG + '{3})+\\)?$').test(fw.map(q => q.text).join(' ').replace(/\s+/g, ' '));
+            if ((d.confidence || 0) < 25 && !(junk && wf)) continue;
+            fw.sort((p1, p2) => p1.x0 - p2.x0);
+            const merged = [];
+            for (const q of fw) {
+              const last = merged[merged.length - 1], gh = Math.max(6, q.y1 - q.y0, fwH);
+              if (last && joinable(last.text, q.text) && q.x0 - last.x1 < 1.4 * gh) { last.text += ' ' + q.text; last.x1 = q.x1; last.y0 = Math.min(last.y0, q.y0); last.y1 = Math.max(last.y1, q.y1); last.conf = Math.min(last.conf, q.conf); continue; }
+              merged.push(Object.assign({}, q));
+            }
+            merged.forEach(regroup);
+            const before = inside.map(w => w.text).join(' '), base = inside[0];
+            const rowBase = median(inside.map(w => w.base));
+            const nw = merged.map(q => Object.assign({}, base, { text: q.text, x0: q.x0 + cx, x1: q.x1 + cx, y0: q.y0 + cy, y1: q.y1 + cy, base: rowBase, lineTop: Math.min(...inside.map(w => w.lineTop)), lineBot: Math.max(...inside.map(w => w.lineBot)), conf: q.conf, alt: '', refined: true, fin: true, forceLc: q.conf < 75 }));
+            if (before.replace(/\s/g, '') !== nw.map(q => q.text).join('').replace(/\s/g, '')) nw.forEach(q => q.alt = before);
+            inside.forEach(w => w.dead = true); out.push(...nw);
+          } catch (e) { console.warn('fin read', e); break; } finally { IMG.free(c); }
+        }
+      }
+      // pass 2: numeric columns learnt from the rows that worked; force-read them in rows where the text model
+      // produced confident-looking junk (e.g. digit groups read as short Arabic words)
+      const fx = out.filter(q => /[0-9\u0660-\u0669]{2,}/.test(q.text)).map(q => [q.x0, q.x1]).sort((a, b) => a[0] - b[0]);
+      const colsN = []; for (const [a, b] of fx) { const l = colsN[colsN.length - 1]; if (l && a <= l[1]) { l[1] = Math.max(l[1], b); l.n++; } else colsN.push([a, b, 1]); }
+      const numCols = colsN.filter(c => c[2] >= 3);
+      if (numCols.length) for (const R of rows) {
+        const h = hm;
+        for (const [a, b] of numCols) {
+          const have = out.some(q => q.fin && (q.x0 + q.x1) / 2 > a && (q.x0 + q.x1) / 2 < b && (q.y0 + q.y1) / 2 > R.y0 && (q.y0 + q.y1) / 2 < R.y1);
+          if (have) continue;
+          const inside = R.ws.filter(w => !w.dead && !trusted(w) && ov(w.x0, w.x1, a, b) > 0.4 * (w.x1 - w.x0));
+          if (!inside.length || inside.every(w => /^[\-–—_.]+$/.test(w.text))) continue;
+          const pad = Math.max(4, Math.round(0.3 * hm)), cx = Math.max(0, Math.floor(Math.min(a, ...inside.map(w => w.x0)) - pad)), cy = Math.max(0, Math.floor(R.y0 - 0.15 * hm));
+          const c = IMG.crop(P.proc, cx, cy, Math.max(b, ...inside.map(w => w.x1)) - cx + pad, R.y1 - R.y0 + 0.3 * hm);
+          try {
+            const d = await OCR.finRead(c, dpi);
+            const fw = wordsOf(d).map(q => Object.assign(q, { text: q.text.replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '').replace(/([0-9\u0660-\u0669])[\u066C,.]+(?=[0-9\u0660-\u0669])/g, '$1') })).filter(q => q.text && /[0-9\u0660-\u0669]/.test(q.text));
+            if (!fw.length || fw.some(q => /[\u0621-\u063A\u0641-\u064A]{3,}/.test(q.text))) continue;
+            fixWidth(fw); const fwH = median(fw.filter(q => q.text.replace(/[^0-9\u0660-\u0669]/g, '').length >= 2).map(q => q.y1 - q.y0)) || 0;
+            fw.sort((p1, p2) => p1.x0 - p2.x0);
+            const merged = [];
+            for (const q of fw) { const last = merged[merged.length - 1], gh = Math.max(6, q.y1 - q.y0, fwH); if (last && joinable(last.text, q.text) && q.x0 - last.x1 < 1.4 * gh) { last.text += ' ' + q.text; last.x1 = q.x1; last.conf = Math.min(last.conf, q.conf); continue; } merged.push(Object.assign({}, q)); }
+            merged.forEach(regroup);
+            const before = inside.map(w => w.text).join(' '), base = inside[0], rowBase = median(inside.map(w => w.base));
+            out.push(...merged.map(q => Object.assign({}, base, { text: q.text, x0: q.x0 + cx, x1: q.x1 + cx, y0: q.y0 + cy, y1: q.y1 + cy, base: rowBase, conf: q.conf, alt: before, refined: true, fin: true, forceLc: true })));
+            inside.forEach(w => w.dead = true);
+          } catch (e) { console.warn('fin pass2', e); break; } finally { IMG.free(c); }
+        }
+      }
+      // pass 3: numerals inside prose (dates, article numbers) that the Arabic text model turned into Latin look-alikes (Y, V, o, ...)
+      const LOOK = /^[()\[\]0-9\u0660-\u0669YVoOA£¥TlI|!7.,:\/\-]+$/;
+      let n3 = 0;
+      for (const w of words) {
+        if (n3 >= 80) break;
+        const wt = w.text.replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '');
+        if (w.dead || w.fin || !LOOK.test(wt) || !/[0-9YVoA£¥T7]/.test(wt) || wt.length > 14) continue;
+        if (/^[\u0660-\u0669()\/.,\-]+$/.test(wt) && w.conf >= 70) continue;   // already a confident Arabic-Indic numeral
+        const ws2 = words.filter(q => q !== w && !q.dead && Math.abs((q.y0 + q.y1) / 2 - (w.y0 + w.y1) / 2) < 0.5 * hm);
+        if (!ws2.some(q => /[\u0621-\u064A]{2,}/.test(q.text))) continue;   // only inside Arabic lines
+        n3++;
+        const cyc = (w.y0 + w.y1) / 2, pad = Math.max(3, Math.round(0.3 * hm));
+        const cx = Math.max(0, Math.floor(w.x0 - pad)), cy = Math.max(0, Math.floor(cyc - 0.75 * hm));
+        const c = IMG.crop(P.proc, cx, cy, w.x1 - w.x0 + 2 * pad, 1.5 * hm);
+        try {
+          const d = await OCR.finRead(c, dpi);
+          const t = wordsOf(d).map(q => q.text.replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '')).join('');
+          if (window.DEBUG_FIN) console.log('FIN3', w.text, '=>', t, Math.round(d.confidence));
+          if (!/^[(\[]?[0-9\u0660-\u0669][0-9\u0660-\u0669\/.,\-\u066C]*[)\]]?$/.test(t) || (d.confidence || 0) < 30) continue;
+          const nd = (t.match(/[0-9\u0660-\u0669]/g) || []).length, nw = (wt.match(/[0-9\u0660-\u0669YVoOA£¥TlI|!7]/g) || []).length;
+          if (Math.abs(nd - nw) > 1) continue;
+          if (/[0-9]/.test(t) && /[\u0660-\u0669]/.test(t)) continue;
+          if (t !== w.text) { w.alt = w.text; w.text = t; w.fin = true; w.refined = true; w.conf = d.confidence; w.forceLc = d.confidence < 75; }
+        } catch (e) { console.warn('fin pass3', e); break; } finally { IMG.free(c); }
+      }
+      words = words.filter(w => !w.dead).concat(out);
+    }
     // numeric refinement: re-read weak words containing digits with a digit-only Latin recogniser (Arabic models are weak on Latin numerals)
-    if (/ara/.test(S.lang) && !pdfOut) {
+    if (/ara/.test(S.lang) && !pdfOut && !finUsed) {
       // Arabic models can report high confidence for badly truncated numerals ("0" for "1,245,300"), so every numeric word is re-read
       const cand = words.filter(w => /[0-9\u0660-\u0669]/.test(w.text) && (w.x1 - w.x0) > 3).slice(0, o.qual === 'high' ? 400 : 200);
       for (const w of cand) {

@@ -1,7 +1,7 @@
 import threading, functools, http.server, json, os, sys, time, base64
 from playwright.sync_api import sync_playwright
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = '/home/claude/lab'
 FIX = os.path.join(ROOT, 'tests', 'fixtures')
 OUT = os.path.join(ROOT, 'tests', 'out'); os.makedirs(OUT, exist_ok=True)
 
@@ -11,7 +11,7 @@ class Q(http.server.SimpleHTTPRequestHandler):
         self.send_header('Cache-Control', 'no-store'); super().end_headers()
 
 _srv = None
-def serve(port=8765):
+def serve(port=int(os.environ.get('HPORT','8765'))):
     global _srv
     if _srv: return
     h = functools.partial(Q, directory=ROOT)
@@ -34,7 +34,7 @@ class App:
         self.page.on('console', lambda m: self.logs.append(f'[{m.type}] {m.text}'))
         self.page.on('pageerror', lambda e: self.logs.append(f'[pageerror] {e}'))
         self.page.on('dialog', lambda d: d.accept())
-        self.page.goto('http://127.0.0.1:8765/doc-rebuilder.html')
+        self.page.goto(f'http://127.0.0.1:{os.environ.get("HPORT","8765")}/dist/doc-rebuilder.html')
         self.page.wait_for_function('window.APP !== undefined')
 
     def open(self, name, timeout=60000):
