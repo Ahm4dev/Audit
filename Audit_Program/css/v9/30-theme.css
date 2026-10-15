@@ -1,4 +1,4 @@
-/* MEAP · v9 · Modern calm theme (screen only; loaded last)
+/* Audit-Plus · v9 · Modern calm theme (screen only; loaded last)
    ------------------------------------------------------------------
    Palette: soft sage-white surfaces + deep teal brand; semantic colours (red / amber / green)
    are kept distinct from the teal brand so statuses never look like "decoration".
@@ -23,7 +23,7 @@
   --sh:0 1px 2px rgba(16,40,42,.05),0 8px 20px -14px rgba(16,40,42,.18);
   --sh-pop:0 18px 44px -18px rgba(16,40,42,.35);
   --glass:color-mix(in srgb,var(--card) 88%,transparent);
-  --font-ui:"MEAP Sans","Segoe UI","Noto Sans Arabic",Tahoma,Arial,sans-serif;
+  --font-ui:"Audit-Plus Sans","Segoe UI","Noto Sans Arabic",Tahoma,Arial,sans-serif;
 }
 /* ============ tokens — dark ============ */
 :root[data-theme=dark]{

@@ -1,4 +1,4 @@
-/* MEAP · Data engine: stores, companies, engagements, op-logs, autosave, sync */
+/* Audit-Plus · Data engine: stores, companies, engagements, op-logs, autosave, sync */
 'use strict';
 /* ================= a3 · Data engine: store selection, companies, engagements, op-logs, autosave, sync ================= */
 let STORE=null,STORE_ID='idb:local',SETTINGS=null;
@@ -15,14 +15,26 @@ async function withRetry(fn,tries){tries=tries||3;let last;for(let i=0;i<tries;i
 const lockWrite=fn=>navigator.locks&&navigator.locks.request?navigator.locks.request('meap-w-'+writer(),fn):fn();
 
 /* ---------- Choosing the store: folder (File System Access) or browser IndexedDB ---------- */
+const isMissingErr=e=>!!e&&(e.name==='NotFoundError'||e.name==='NotFoundErr'||e.name==='TypeMismatchError'||e.name==='NotReadableError');
 async function openStoreFromDevice(){/* returns {store, needsPermission, handle} */
  if(window.__MEAP_TEST_ROOT)return{store:FSFS(window.__MEAP_TEST_ROOT)};/* automated tests only: simulated shared folder */
  if(FSA_OK){let h=null;try{h=await KV.get('root')}catch(e){logErr('a3_engine:18 h=await KV.get(root)',e)}
   if(h){let p='prompt';try{p=await h.queryPermission({mode:'readwrite'})}catch(e){logErr('a3_engine:19 p=await h.queryPermission({mode:readwrite})',e)}
-   if(p==='granted')return{store:FSFS(h)};return{store:null,needsPermission:true,handle:h}}}
+   if(p==='granted'){/* the saved folder may have been deleted/moved since last time: verify it still exists */
+    try{await h.entries().next()}catch(e){if(isMissingErr(e))return{store:null,missing:true,handle:h};throw e}
+    return{store:FSFS(h)}}
+   return{store:null,needsPermission:true,handle:h}}}
  return{store:IDBFS()}}
 async function pickFolder(){const h=await window.showDirectoryPicker({id:'meap-data',mode:'readwrite'});
- const root=h.name==='MEAP-Data'?h:await h.getDirectoryHandle('MEAP-Data',{create:true});
+ const NEW_DN='Audit-Plus-Data',OLD_DN='MEAP-Data';let root=(h.name===NEW_DN||h.name===OLD_DN)?h:null;
+ const tryDir=async n=>{try{return await h.getDirectoryHandle(n,{create:false})}catch(e){if(e&&(e.name==='NotFoundError'||e.name==='TypeMismatchError'))return null;throw e}};
+ if(!root)root=await tryDir(NEW_DN);
+ if(!root){const old=await tryDir(OLD_DN);
+  if(old&&typeof ask==='function'&&await ask({title:'مجلد بيانات بالاسم القديم',body:'وُجد في هذا المكان مجلد <b>MEAP-Data</b> (الاسم القديم). هل تريد نسخ بياناته إلى مجلد جديد باسم <b>Audit-Plus-Data</b>؟ يبقى المجلد القديم كما هو دون حذف، وتُعتمد النسخة الجديدة.',ok:'نسخ إلى Audit-Plus-Data'})){
+   const nd=await h.getDirectoryHandle(NEW_DN,{create:true});toast('جارٍ نسخ البيانات إلى Audit-Plus-Data…','i');
+   const n0=await countFiles(FSFS(old),'');await copyTree(FSFS(old),FSFS(nd),'',null,{});const n1=await countFiles(FSFS(nd),'');
+   if(n1<n0)throw new Error(`تم نسخ ${n1} من ${n0} ملف فقط؛ لم يتم التحويل.`);root=nd}
+  else root=old||await h.getDirectoryHandle(NEW_DN,{create:true})}
  const p=await root.requestPermission({mode:'readwrite'});if(p!=='granted')throw new Error('لم يُمنح إذن الكتابة على المجلد.');return root}
 async function loadSettings(){let s=null;const txt=await STORE.readText('_settings.json');if(txt){try{s=JSON.parse(txt)}catch(e){s=null}}
  if(!s||s.format!=='MEAP-settings'){s=Object.assign({},DEF_SETTINGS,{storeId:uid('s_'),createdAt:localISO()});await STORE.mkdir('_users');await STORE.mkdir('companies');await STORE.writeText('_settings.json',JSON.stringify(s,null,1))}
@@ -119,7 +131,7 @@ const SAVER={q:[],extra:new Map(),timer:0,busy:null,fails:0,state:'saved',err:''
   this.busy=(async()=>{try{await this.write(batch,extra);this.fails=0;this.lastOk=Date.now();WAL.drop(batch);
      if(this.q.length||this.extra.size)this.kick(60);else this.set(WAL.ok?'saved':'error',WAL.ok?'':'تعذّر حفظ نسخة الطوارئ في ذاكرة المتصفح (المساحة ممتلئة) — الحفظ في المجلد ناجح.');try{BC&&BC.postMessage({t:'saved',store:STORE_ID})}catch(e){logErr('a3_engine:102 BC&&BC.postMessage({t:saved,store:STORE_ID})',e)}}
    catch(e){this.q.unshift(...batch);for(const [p,g] of extra){const s=this.extra.get(p)||new Set();g.forEach(x=>s.add(x));this.extra.set(p,s)}
-    this.fails++;const wait=Math.min(30000,1000*Math.pow(2,Math.min(this.fails,5)));this.set('error',errMsg(e));if(this.fails===1&&typeof toast==='function')toast('فشل الحفظ: '+errMsg(e)+' — تعديلاتك محفوظة مؤقتًا على هذا الجهاز وستُعاد المحاولة تلقائيًا.','e',10000);this.nextRetry=Date.now()+wait;clearTimeout(this.timer);this.timer=setTimeout(()=>this.flush(),wait)}
+    this.fails++;const wait=Math.min(30000,1000*Math.pow(2,Math.min(this.fails,5)));this.set('error',errMsg(e));if(this.fails===1&&typeof toast==='function')toast('فشل الحفظ: '+errMsg(e)+' — تعديلاتك محفوظة مؤقتًا على هذا الجهاز وستُعاد المحاولة تلقائيًا.','e',e&&isMissingErr(e)&&STORE&&STORE.kind==='fs'&&FSA_OK?30000:10000,e&&isMissingErr(e)&&STORE&&STORE.kind==='fs'&&FSA_OK?{label:'اختيار مكان حفظ جديد',fn:()=>chooseFolder(false)}:undefined);this.nextRetry=Date.now()+wait;clearTimeout(this.timer);this.timer=setTimeout(()=>this.flush(),wait)}
    finally{this.busy=null}})();
   return this.busy},
  async write(batch,extra){const by=new Map();for(const it of batch){if(!by.has(it.p))by.set(it.p,[]);by.get(it.p).push(it.o)}

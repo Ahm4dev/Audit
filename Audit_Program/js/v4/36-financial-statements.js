@@ -1,4 +1,4 @@
-/* MEAP · V4 · Financial statements (52_fs) */
+/* Audit-Plus · V4 · Financial statements (52_fs) */
 'use strict';
 /* ===== 52_fs.js ===== */
 /* =====================================================================

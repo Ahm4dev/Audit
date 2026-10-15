@@ -1,4 +1,4 @@
-/* MEAP data · Audit phases (PH) */
+/* Audit-Plus data · Audit phases (PH) */
 const PH=[
 {id:"accept",stg:"1. القبول والاستمرار والارتباط (Acceptance & Engagement)",n:"قبول العميل واستمرار العلاقة",en:"Client Acceptance & Continuance",isa:"220 210 300 510",obj:"التأكد من أن المكتب لديه الكفاءة والقدرة والموارد لتنفيذ الارتباط، وأن نزاهة الإدارة والملاك مقبولة، وأن قبول أو استمرار العلاقة لا يعرض المكتب لمخاطر غير مقبولة (ISQM 1 / ISA 220).",cov:"Client Acceptance · Engagement Continuance · Predecessor Auditor Communication · Initial Client Information · Integrity of Management · AML/KYC",
 rk:["قبول عميل لديه إدارة تفتقر للنزاهة أو متورطة في غسل أموال أو احتيال.","عدم توفر الكفاءة القطاعية أو الموارد أو الوقت لإنجاز المراجعة بجودة مناسبة.","وجود خلافات مع المراجع السابق أو قيود على النطاق تخفيها الإدارة.","أتعاب منخفضة بشكل غير طبيعي تؤثر على جودة العمل (Lowballing).","سنة أولى: أرصدة افتتاحية غير مدققة أو تحفظات سابقة."],

@@ -1,4 +1,4 @@
-/* MEAP · Exports: Excel, Word, PDF print pack */
+/* Audit-Plus · Exports: Excel, Word, PDF print pack */
 'use strict';
 /* ================= a14 · Exports: Excel (WP, logs, whole engagement), Word (closing report), PDF print pack (header, footer, page numbers, TOC) ================= */
 function wpSheets0(ref,st){st=st||CUR.eng;const w=wpDef(st,ref);if(!w)return[];const snap=wpSnapshot(st,ref);if(!snap)return[];const d=snap.data;const S=[];const nm=s=>(ref+' '+s).slice(0,31);
@@ -44,5 +44,5 @@ function printPackHTML(){const co=CUR.company.name,yr=G('eng.year','');const sec
  return cover+toc+secs.map((s,i)=>`<section class="pp-sec" id="${s.id}"><h2 class="pp-h">${i+1}. ${esc(s.title)}</h2>${s.html}</section>`).join('')}
 function ppPageStyle(){const t=(SETTINGS.firmName?SETTINGS.firmName+' · ':'')+CUR.company.name+' · '+G('eng.year','');const q=s=>'"'+String(s).replace(/["\\\n]/g,' ')+'"';
  /* constructed stylesheet (CSSOM) — allowed under the strict Content-Security-Policy, unlike an injected <style> */
- try{const css=`@page{size:A4;margin:16mm 12mm 16mm 12mm;@top-center{content:${q(t)};font-size:8pt;color:#555}@bottom-center{content:"صفحة " counter(page) " من " counter(pages);font-size:8pt;color:#555}@bottom-left{content:${q('MEAP v'+VERSION)};font-size:7pt;color:#777}}`;
+ try{const css=`@page{size:A4;margin:16mm 12mm 16mm 12mm;@top-center{content:${q(t)};font-size:8pt;color:#555}@bottom-center{content:"صفحة " counter(page) " من " counter(pages);font-size:8pt;color:#555}@bottom-left{content:${q('Audit-Plus v'+VERSION)};font-size:7pt;color:#777}}`;
   if(!ppPageStyle.sh){ppPageStyle.sh=new CSSStyleSheet();document.adoptedStyleSheets=[...document.adoptedStyleSheets,ppPageStyle.sh]}ppPageStyle.sh.replaceSync(css)}catch(e){logErr('print page style',e,'warn')}}

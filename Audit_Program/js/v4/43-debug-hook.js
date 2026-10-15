@@ -1,4 +1,4 @@
-/* MEAP · V4 · Debug hook (99_debug) */
+/* Audit-Plus · V4 · Debug hook (99_debug) */
 'use strict';
 /* ===== 99_debug.js ===== */
 /* test hook: exposes internals only when localStorage meap.debug=1 */

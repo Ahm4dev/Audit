@@ -1,4 +1,4 @@
-/* MEAP · v10 · Delete a company (home screen + company page): typed confirmation, safe move to _trash, undo */
+/* Audit-Plus · v10 · Delete a company (home screen + company page): typed confirmation, safe move to _trash, undo */
 'use strict';
 (()=>{
  const ar=()=>(PREF&&PREF.lang)!=='en';const T=(a,e)=>ar()?a:e;

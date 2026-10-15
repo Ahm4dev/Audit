@@ -1,4 +1,4 @@
-/* MEAP · V6 link bar under header */
+/* Audit-Plus · V6 link bar under header */
 /* ---------- شريط الارتباط (تحت الهيدر) ---------- */
 @media (min-width:768px){.etabs{top:var(--hdr-vis)}}
 .engbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(150px,230px) auto;

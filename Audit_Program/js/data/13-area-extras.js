@@ -1,4 +1,4 @@
-/* MEAP data · Area extras & generic disclosure items */
+/* Audit-Plus data · Area extras & generic disclosure items */
 /* =====================================================================
    v4 · Area-specific content (Arabic): extra procedures, risks, estimates, disclosures.
    pr:  [procedure, assertions, ISA/ref]     rk: [level(H/M/L), flags(S=significant,F=fraud), assertions, description]

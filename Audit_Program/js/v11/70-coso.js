@@ -1,4 +1,4 @@
-/* MEAP · v11 · COSO 2013 internal-control evaluation (B340).
+/* Audit-Plus · v11 · COSO 2013 internal-control evaluation (B340).
    5 components · 17 principles · design / implementation / operating effectiveness · deficiencies classified per ISA 265
    · linked to risk areas, assertions, procedures and the reporting papers (D510 / D520 / D530 / D515 / A-opinion).
    Stored per engagement under keys  coso.<principle>.<field>  (auto-persisted by the generic data-k handler). */

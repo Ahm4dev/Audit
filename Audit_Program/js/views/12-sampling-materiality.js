@@ -1,4 +1,4 @@
-/* MEAP · Views: Sampling & materiality */
+/* Audit-Plus · Views: Sampling & materiality */
 'use strict';
 /* ===== Sampling & materiality (inputs saved per engagement) ===== */
 /* legacy stored values were «RF|EF» pairs; the factors now come from the exact Poisson/AICPA tables in SM */

@@ -1,4 +1,4 @@
-/* MEAP data · v11 · Egypt statutory & regulatory compliance papers + COSO (2013) framework data.
+/* Audit-Plus data · v11 · Egypt statutory & regulatory compliance papers + COSO (2013) framework data.
    Same structure as W / v3 content: [ref, English, العربية, kind, ISA refs, objective, checklist items].
    Standard and law names are cited without paragraph/article quotations; every item stays flagged for professional review
    (V3REVIEW) until the engagement partner approves the wording that applies to the year under audit. */

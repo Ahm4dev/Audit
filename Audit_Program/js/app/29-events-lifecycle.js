@@ -1,4 +1,4 @@
-/* MEAP · Events, keyboard, lifecycle, boot() */
+/* Audit-Plus · Events, keyboard, lifecycle, boot() */
 'use strict';
 /* ================= a7 · Events, keyboard, lifecycle, boot ================= */
 const undoToast=msg=>toast(msg,'s',9000,{label:t('undo'),fn:()=>{undo();UI.refreshView()}});
@@ -90,7 +90,7 @@ document.addEventListener('click',async e=>{const el=e.target instanceof Element
  case 'logout':await logout();break;
  case 'theme':cycleTheme();break;
  case 'reload':location.reload();break;
- case 'stRun':await SELFTEST.run();break;case 'stDl':if(SELFTEST.res)downloadBlob(new Blob([JSON.stringify(SELFTEST.res,null,1)],{type:'application/json'}),'MEAP-selftest-'+today()+'.json');break;
+ case 'stRun':await SELFTEST.run();break;case 'stDl':if(SELFTEST.res)downloadBlob(new Blob([JSON.stringify(SELFTEST.res,null,1)],{type:'application/json'}),'Audit-Plus-selftest-'+today()+'.json');break;
  case 'pgmore':{const k=b.dataset.pg,st=+b.dataset.step||PSTEP;PAGER[k]=pgLimit(k,st)+st;if(k==='explorer')renderRes();else if(k==='audit')drawAudit();else if(k==='saudit')renderStoreAudit();else if(k==='find')runFind(parseHash().slice(1).join('/'),true);else UI.refreshView();break}
  case 'fsave':{const r=await formDlg({title:'حفظ الفلاتر',html:'<label class="fl">اسم الفلتر<input class="in" name="n" required></label>',ok:t('save'),onOk:async d=>String(d.n||'').trim()||null});if(r){const L_=savedFilters();L_.push({n:r,f:Object.assign({},F)});LS.set('meap.filters',L_);route(true)}break}
  case 'fload':{const f=savedFilters()[+b.dataset.i];if(f){Object.keys(F).forEach(k=>{F[k]=''});Object.assign(F,f.f);route(true)}break}
@@ -139,7 +139,7 @@ document.addEventListener('click',async e=>{const el=e.target instanceof Element
  case 'mlprior':await mlImportPrior();break;
  case 'ohapply':{const n=$('#ohN').value,ef=$('#ohE').value;const op=OPMX[n][ef];CUR.eng.setMany({'doc.audrep.o.op':op,'doc.audrep.o.basis':n},{label:'نوع الرأي'});toast('تم ضبط نوع الرأي: '+(TPLM.audrep.opts[0][2].find(x=>x[0]===op)||[])[1],'s');route(true);break}
  case 'docexp':await docExport(b.dataset.id,b.dataset.fmt);break;
- case 'logdl':downloadBlob(new Blob([JSON.stringify({app:'MEAP',version:VERSION,device:DEVICE,exportedAt:localISO(),log:ERRLOG},null,1)],{type:'application/json'}),'MEAP-system-log-'+today()+'.json');break;
+ case 'logdl':downloadBlob(new Blob([JSON.stringify({app:'Audit-Plus',version:VERSION,device:DEVICE,exportedAt:localISO(),log:ERRLOG},null,1)],{type:'application/json'}),'Audit-Plus-system-log-'+today()+'.json');break;
  case 'logclr':if(await ask({title:'مسح سجل النظام',body:'حذف كل مدخلات سجل الأخطاء على هذا الجهاز؟',ok:t('del'),danger:true})){ERRLOG.length=0;LS.del('meap.errlog');route(true)}break;
  case 'glang':PREF.lang=PREF.lang==='en'?'ar':'en';savePrefs();applyPrefs();boot();break;
  case 'usermenu':userMenu();break;
@@ -213,17 +213,17 @@ async function newWpDlg(){const r=await formDlg({title:'ورقة عمل مخصص
   CUR.eng.set('cwp.'+ref,{ref,ar:d.ar,en:d.en,k:d.k,sec:ref.split('-')[0],isa:d.isa,ob:d.ob,by:SESSION.id,t:Date.now()},{label:'ورقة مخصصة'});syncCustomWPs();audit('wp.create',{ref});return ref}});
  if(r)location.hash=L('wp/'+encodeURIComponent(r))}
 
-function fatal(msg){$('#app').innerHTML=`<main class="gate" id="main"><div class="card"><h1>MEAP</h1><p class="note bad">${esc(msg)}</p><button class="btn" type="button" data-act="reload">إعادة المحاولة</button></div></main>`}
-async function boot(){if(window.opener&&/[?&]state=/.test(location.search)&&/[?&](code|error)=/.test(location.search)){document.title='MEAP — تسجيل الدخول';$('#app').innerHTML='<main class="gate"><div class="card"><p>جارٍ إكمال تسجيل الدخول… يمكنك إغلاق هذه النافذة إن لم تُغلق تلقائيًا.</p></div></main>';return}
+function fatal(msg){$('#app').innerHTML=`<main class="gate" id="main"><div class="card"><h1>Audit-Plus</h1><p class="note bad">${esc(msg)}</p><div class="row"><button class="btn" type="button" data-act="reload">إعادة المحاولة</button>${FSA_OK&&STORE&&STORE.kind==='fs'?'<button class="btn g" type="button" data-act="pickfolder">📁 اختيار مكان حفظ جديد</button>':''}</div></div></main>`}
+async function boot(){if(window.opener&&/[?&]state=/.test(location.search)&&/[?&](code|error)=/.test(location.search)){document.title='Audit-Plus — تسجيل الدخول';$('#app').innerHTML='<main class="gate"><div class="card"><p>جارٍ إكمال تسجيل الدخول… يمكنك إغلاق هذه النافذة إن لم تُغلق تلقائيًا.</p></div></main>';return}
  applyPrefs();SYNC.stop();BLOBURL.all();
  if(!boot._p){boot._p=1;await loadPrefsFallback()}
  if(!window.crypto||!crypto.subtle){fatal('هذا المتصفح لا يوفر Web Crypto API اللازم لتشفير بيانات الدخول. افتح الملف في Chrome أو Edge أو Firefox أو Safari حديث.');return}
  if(!window.indexedDB){fatal('تخزين المتصفح (IndexedDB) غير متاح (ربما وضع التصفح الخاص). افتح البرنامج في نافذة عادية.');return}
- try{const r=await openStoreFromDevice();if(r.needsPermission){gatePermission(r.handle);return}STORE=r.store;
+ try{const r=await openStoreFromDevice();if(r.missing){gateFolderMissing(r.handle);return}if(r.needsPermission){gatePermission(r.handle);return}STORE=r.store;
   if(STORE.kind==='idb'&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(e=>logErr('storage.persist',e,'info'));
   await loadSettings();await USERS.load();if(!USERS.doc||!USERS.doc.users.length){gateSetup();return}
   const s=await restoreSession();if(!s){gateLogin();return}await enterApp()}
- catch(e){fatal(errMsg(e))}}
+ catch(e){if(STORE&&STORE.kind==='fs'&&isMissingErr(e)){gateFolderMissing(STORE.root);return}fatal(errMsg(e))}}
 async function enterApp(){UI.shell();$('#q').placeholder=t('searchPh');SAVER.set('saved');
  setTimeout(()=>BK.auto(),4000);SIDX.build();if(STORE.kind==='fs')setTimeout(async()=>{const c=await findSyncConflicts(20);if(c.length)toast(`تنبيه: ${c.length} ملف يبدو نسخة تعارض من تطبيق المزامنة (مثل ${c[0]}). راجع الإعدادات ← مجلد الحفظ.`,'w',15000,{label:'عرض',fn:()=>{location.hash='#/settings/storage'}})},6000);if(/[?&]selftest\b/.test(location.search)&&!/^#\/selftest/.test(location.hash)&&!sessionStorage.getItem('meap.selftest.reload'))location.hash='#/selftest';
  if(MIGRATED){toast(`تم ترحيل مجلد البيانات من الإصدار ${MIGRATED.from} إلى ${MIGRATED.to} (v${VERSION}) دون حذف أي ملف. نسخة احتياطية موثقة ببصمات SHA-256: ${MIGRATED.backup} (${MIGRATED.files} ملف).`,'s',15000);audit('migrate',MIGRATED);MIGRATED=null}

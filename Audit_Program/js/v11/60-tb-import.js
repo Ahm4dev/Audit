@@ -1,4 +1,4 @@
-/* MEAP · v11 · Smart trial-balance import (UI + sign-convention engine).
+/* Audit-Plus · v11 · Smart trial-balance import (UI + sign-convention engine).
    Re-uses the proven engine (worker parsing, detectMapping, buildAccountsA, validateTB, versioned storage) and replaces the wizard UI:
    stepper · smart layout detection · sign-convention diagnosis (debit-positive / credit-positive / unsigned) with one-click fix ·
    live preview with split Dr/Cr · KPI tiles · downloadable templates.  The decision is stored with the version (tbv.<n>.sign). */

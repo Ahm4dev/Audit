@@ -1,4 +1,4 @@
-/* MEAP · Scheduled backups: content-addressed objects, SHA-256 manifests, restore */
+/* Audit-Plus · Scheduled backups: content-addressed objects, SHA-256 manifests, restore */
 'use strict';
 /* ================= a13 · Scheduled backups inside the save folder: content-addressed objects + SHA-256 manifests, integrity check, restore ================= */
 /* Layout: _backups/objects/<aa>/<sha256>   (each distinct file content stored once — unchanged files are not copied again)

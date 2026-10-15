@@ -1,4 +1,4 @@
-/* MEAP · Core utilities, i18n, preferences, storage backends */
+/* Audit-Plus · Core utilities, i18n, preferences, storage backends */
 'use strict';
 /* ================= a1 · Core utilities, i18n, preferences, storage backends ================= */
 const VERSION='3.0.0',SCHEMA=3;
@@ -38,7 +38,7 @@ let _errSave=0;
 function logErr(ctx,e,level){const m=e&&(e.message||e.name)?String(e.name&&e.name!=='Error'?e.name+': ':'')+String(e.message||''):String(e==null?'':e);
  ERRLOG.push({t:Date.now(),ctx:String(ctx),lv:level||'error',m:m.slice(0,500),st:e&&e.stack?String(e.stack).split('\n').slice(0,3).join(' | ').slice(0,400):''});if(ERRLOG.length>500)ERRLOG.splice(0,ERRLOG.length-500);
  clearTimeout(_errSave);_errSave=setTimeout(()=>{try{localStorage.setItem('meap.errlog',JSON.stringify(ERRLOG))}catch(x){/* cannot persist the log itself – nothing else to report to (intentional) */}},400);
- if(level!=='info'&&typeof console!=='undefined'&&window.__MEAP_DEBUG)console.warn('[MEAP]',ctx,e)}
+ if(level!=='info'&&typeof console!=='undefined'&&window.__MEAP_DEBUG)console.warn('[Audit-Plus]',ctx,e)}
 window.addEventListener('error',ev=>logErr('window.onerror',ev.error||ev.message));
 window.addEventListener('unhandledrejection',ev=>logErr('unhandledrejection',ev.reason));
 const LS=(()=>{let st=null,bad=false;try{st=window.localStorage;st.getItem('meap.probe')}catch(e){bad=true;st=null;logErr('localStorage unavailable – using in-memory + IndexedDB fallbacks',e,'warn')}

@@ -1,4 +1,4 @@
-/* MEAP · V4 · Trial balance layer (20_tb) */
+/* Audit-Plus · V4 · Trial balance layer (20_tb) */
 'use strict';
 /* ===== 20_tb.js ===== */
 /* =====================================================================

@@ -1,4 +1,4 @@
-/* MEAP · Gate (folder/login/setup), router, companies, settings, backup */
+/* Audit-Plus · Gate (folder/login/setup), router, companies, settings, backup */
 'use strict';
 /* ================= a6 · Gate (folder/login/setup), router, companies, settings, backup ================= */
 const ROLEN=r=>t(r);
@@ -6,14 +6,21 @@ function storeNote(){if(STORE.kind==='fs')return `<p class="note">📁 مجلد 
  return FSA_OK?`<p class="note warn">💾 البيانات محفوظة حاليًا داخل المتصفح (IndexedDB). للعمل الجماعي أو للنسخ الاحتياطي بنسخ المجلد اختر مجلد حفظ على القرص.</p>`:
  `<p class="note warn">💾 هذا المتصفح لا يدعم اختيار مجلد على القرص (File System Access API)، لذلك يعمل البرنامج بالتخزين الداخلي للمتصفح (IndexedDB). للحفظ في مجلد مشترك استخدم Google Chrome أو Microsoft Edge على الحاسب.</p>`}
 function gate(html){$('#app').innerHTML=`<main class="gate" id="main" tabindex="-1"><div class="card"><div class="gate-tools"><button class="ib theme-btn" id="themeBtn" type="button" data-act="theme"></button><button class="ib" type="button" data-act="glang" aria-label="Language / اللغة">${PREF.lang==='en'?'ع':'EN'}</button></div>${html}</div></main>`;applyPrefs();const f=$('#app input');f&&f.focus()}
-function gatePermission(handle){gate(`<h1>MEAP</h1><p>مجلد الحفظ المحدد: <b>${esc(handle.name)}</b></p><p class="mut">يطلب المتصفح تأكيد إذن الوصول إلى المجلد بعد إعادة فتح البرنامج (هذا ليس تسجيل دخول؛ جلستك محفوظة).</p>
+function gatePermission(handle){gate(`<h1>Audit-Plus</h1><p>مجلد الحفظ المحدد: <b>${esc(handle.name)}</b></p><p class="mut">يطلب المتصفح تأكيد إذن الوصول إلى المجلد بعد إعادة فتح البرنامج (هذا ليس تسجيل دخول؛ جلستك محفوظة).</p>
  <div class="row"><button class="btn" type="button" id="gPerm">منح الإذن والمتابعة</button><button class="btn g" type="button" id="gPick">اختيار مجلد آخر</button></div>`);
- $('#gPerm').onclick=async()=>{try{const p=await handle.requestPermission({mode:'readwrite'});if(p==='granted')boot();else toast('لم يُمنح الإذن.','w')}catch(e){toast(errMsg(e),'e')}};
+ $('#gPerm').onclick=async()=>{try{const p=await handle.requestPermission({mode:'readwrite'});if(p==='granted')boot();else toast('لم يُمنح الإذن.','w')}catch(e){if(isMissingErr(e))gateFolderMissing(handle);else toast(errMsg(e),'e')}};
  $('#gPick').onclick=()=>chooseFolder(true)}
+/* The saved folder was deleted / moved / renamed: let the user pick a new save location (or fall back to browser storage) */
+function gateFolderMissing(handle){STORE=null;
+ gate(`<h1>Audit-Plus</h1><p class="note bad">⚠️ مجلد الحفظ السابق${handle&&handle.name?` <b>${esc(handle.name)}</b>`:''} غير موجود (ربما حُذف أو نُقل أو أُعيدت تسميته).</p>
+ <p class="mut">اختر مكان حفظ جديدًا للمتابعة. إن كان لديك نسخة من المجلد القديم (مثل <b>Audit-Plus-Data</b>) فاختره لاسترجاع بياناتك وحسابات المستخدمين، وإلا فسيُنشأ مجلد جديد فارغ.</p>
+ <div class="row"><button class="btn" type="button" id="gPickNew">📁 اختيار مكان حفظ جديد</button><button class="btn g" type="button" id="gUseIdb">استخدام تخزين المتصفح مؤقتًا</button></div>`);
+ $('#gPickNew').onclick=()=>chooseFolder(true);
+ $('#gUseIdb').onclick=async()=>{try{await KV.del('root')}catch(e){logErr('gUseIdb KV.del(root)',e)}location.hash='#/';location.reload()}}
 function gateSetup(){gate(`<h1>إعداد البرنامج لأول مرة</h1><p class="sub">أنشئ حساب المدير الأول. يمكنه لاحقًا إضافة المستخدمين وتحديد أدوارهم.</p>${storeNote()}
- ${FSA_OK?`<p><button class="btn o" type="button" id="gPick">📁 اختيار مجلد الحفظ أولًا (مستحسن)</button></p><p class="mut small">إن كان زملاؤك قد أنشؤوا مجلد MEAP-Data مشتركًا، اختره لتسجيل الدخول بحساباتهم.</p>`:''}
+ ${FSA_OK?`<p><button class="btn o" type="button" id="gPick">📁 اختيار مجلد الحفظ أولًا (مستحسن)</button></p><p class="mut small">إن كان زملاؤك قد أنشؤوا مجلد Audit-Plus-Data مشتركًا، اختره لتسجيل الدخول بحساباتهم.</p>`:''}
  <form class="fgrid" id="gForm" autocomplete="off"><label>${t('username')}<input class="in" name="u" required autocomplete="username"></label><label>${t('display')}<input class="in" name="d" required></label><label>${t('password')}<input class="in" name="p" type="password" required autocomplete="new-password"></label><label>تأكيد كلمة المرور<input class="in" name="p2" type="password" required autocomplete="new-password"></label>
- <p class="mut small full">8 أحرف على الأقل وتحتوي على حروف وأرقام. تُحفظ كلمة المرور كبصمة مملّحة (PBKDF2) واسم المستخدم مشفّرًا (AES-GCM).</p><p class="note bad full" id="gErr" hidden></p><div class="full"><button class="btn" type="submit">إنشاء حساب المدير</button></div></form>`);
+ <p class="mut small full">يمكنك استخدام أي كلمة مرور بلا شروط. تُحفظ كلمة المرور كبصمة مملّحة (PBKDF2) واسم المستخدم مشفّرًا (AES-GCM).</p><p class="note bad full" id="gErr" hidden></p><div class="full"><button class="btn" type="submit">إنشاء حساب المدير</button></div></form>`);
  const pk=$('#gPick');if(pk)pk.onclick=()=>chooseFolder(true);
  $('#gForm').onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));const er=$('#gErr');er.hidden=true;
   try{if(d.p!==d.p2)throw new Error('كلمتا المرور غير متطابقتين.');const pe=pwPolicy(d.p);if(pe)throw new Error(pe);if(!normU(d.u))throw new Error('اسم المستخدم مطلوب.');e.target.querySelector('button').disabled=true;await setupFirstAdmin({username:d.u,display:d.d,password:d.p});enterApp()}
@@ -29,8 +36,9 @@ function gateLogin(msg){gate(`<h1>${t('login')}</h1>${msg?`<p class="note warn">
 async function chooseFolder(fromGate){if(!FSA_OK){toast('المتصفح لا يدعم اختيار المجلد.','w');return}
  let root;try{root=await pickFolder()}catch(e){if(e.name!=='AbortError')toast(errMsg(e),'e');return}
  const dst=FSFS(root);const dstHas=!!(await dst.readText('_settings.json'));const srcHas=STORE&&(await countFiles(STORE,'companies'))>0;
- if(STORE&&STORE.kind==='fs'&&STORE.root&&(await STORE.root.isSameEntry(root))){toast('هذا هو المجلد الحالي نفسه.','i');return}
- if(srcHas&&SESSION){const choice=await ask({title:'نقل البيانات إلى المجلد الجديد',body:dstHas?'المجلد المختار يحتوي بيانات MEAP سابقة. سيتم <b>دمج</b> بياناتك الحالية معه (نسخ الملفات غير الموجودة ودمج سجلات العمليات) دون حذف أي شيء من المصدر.':'سيتم نسخ جميع البيانات والمرفقات الحالية إلى المجلد الجديد ثم التحقق من عدد الملفات قبل التحويل. لن يُحذف شيء من المكان القديم.',ok:'نقل البيانات والتحويل'});if(!choice)return;
+ let same=false;try{same=!!(STORE&&STORE.kind==='fs'&&STORE.root&&(await STORE.root.isSameEntry(root)))}catch(e){same=false}
+ if(same){toast('هذا هو المجلد الحالي نفسه.','i');return}
+ if(srcHas&&SESSION){const choice=await ask({title:'نقل البيانات إلى المجلد الجديد',body:dstHas?'المجلد المختار يحتوي بيانات Audit-Plus سابقة. سيتم <b>دمج</b> بياناتك الحالية معه (نسخ الملفات غير الموجودة ودمج سجلات العمليات) دون حذف أي شيء من المصدر.':'سيتم نسخ جميع البيانات والمرفقات الحالية إلى المجلد الجديد ثم التحقق من عدد الملفات قبل التحويل. لن يُحذف شيء من المكان القديم.',ok:'نقل البيانات والتحويل'});if(!choice)return;
   try{await SAVER.flush();toast('جارٍ نقل البيانات…','i');const n0=await countFiles(STORE,'');await copyTree(STORE,dst,'',null,{skipExisting:dstHas});const n1=await countFiles(dst,'');if(!dstHas&&n1<n0)throw new Error(`تم نسخ ${n1} من ${n0} ملف فقط؛ لم يتم التحويل.`);
    /* keep the session: same users file was copied */const oldId=STORE_ID;const s=await KV.get('session:'+oldId);await KV.set('root',root);STORE=dst;await loadSettings();if(s&&!dstHas)await KV.set('session:'+STORE_ID,s);
    toast('تم نقل البيانات وتحويل مجلد الحفظ.','s');audit('store.change',{to:root.name});location.hash='#/';location.reload()}catch(e){toast('فشل النقل: '+errMsg(e),'e')}return}
@@ -44,7 +52,7 @@ let LASTHASH='';
 async function route(keep){if(!SESSION)return;BLOBURL.scope('view');const parts=parseHash();const a=parts[0]||'';const same=location.hash===LASTHASH;LASTHASH=location.hash;keep=keep||same;closeDlg();document.body.classList.remove('nav-open');
  if(a==='e'){const [cid,year,view,...args]=parts.slice(1);const ok=await openEng(cid,year);if(!ok)return;renderEng(view||'dash',args.join('/'),keep);return}
  await closeEng();$('#etabs').hidden=true;$('#nav').hidden=true;$('#layout').classList.remove('has-nav');UI.measure();
- let html='',title='MEAP';try{
+ let html='',title='Audit-Plus';try{
   if(a===''){html=await pageHome();title=t('companies')}
   else if(a==='c'){html=await pageCompany(parts[1]);title=t('company')}
   else if(a==='settings'){html=await pageSettings(parts[1]||'general');title=t('settings')}
@@ -52,7 +60,7 @@ async function route(keep){if(!SESSION)return;BLOBURL.scope('view');const parts=
   else if(a==='selftest'){html=SELFTEST.shell();title='فاحص الروابط'}
   else html=`<h1>الصفحة غير موجودة</h1><p><a href="#/">${t('home')}</a></p>`}
  catch(e){html=`<div class="note bad">${esc(errMsg(e))}</div>`}
- $('#main').innerHTML=html;document.title=title+' — MEAP';postRender(keep);if(a==='find')runFind(parts.slice(1).join('/'));if(a==='settings'&&parts[1]==='audit')renderStoreAudit();if(a==='selftest')SELFTEST.page();document.dispatchEvent(new CustomEvent('meap:routed',{detail:{view:a,arg:parts[1]||''}}))}
+ $('#main').innerHTML=html;document.title=title+' — Audit-Plus';postRender(keep);if(a==='find')runFind(parts.slice(1).join('/'));if(a==='settings'&&parts[1]==='audit')renderStoreAudit();if(a==='selftest')SELFTEST.page();document.dispatchEvent(new CustomEvent('meap:routed',{detail:{view:a,arg:parts[1]||''}}))}
 function postRender(keep){const m=$('#main');fitTables(m);m.querySelectorAll('textarea').forEach(autogrow);if(!keep){window.scrollTo(0,0);m.focus({preventScroll:true})}}
 async function openEng(cid,year){if(CUR.eng&&CUR.company&&String(CUR.company.id)===String(cid)&&String(CUR.eng.meta.year)===String(year))return true;
  await closeEng();$('#main').innerHTML='<div class="skel" aria-busy="true" aria-label="جارٍ فتح الارتباط"><span></span><span></span><span></span><span></span></div>';
@@ -120,7 +128,7 @@ async function pageSettings(tb){const tabs=`<div class="tabs" role="tablist">${S
  else if(tb==='storage'){let est='';try{if(navigator.storage&&navigator.storage.estimate){const e=await navigator.storage.estimate();est=`المستخدم من تخزين المتصفح: ${fmtSize(e.usage||0)} من ${fmtSize(e.quota||0)}`}}catch(e){logErr('a6_pages:124 if(navigator.storage&&navigator.storage.estimate){',e)}
   body=`<div class="card">${storeNote()}<div class="kv"><div>نوع التخزين</div><div>${STORE.kind==='fs'?'مجلد على القرص (File System Access API)':STORE.kind==='cloud'?esc(STORE.label)+' (API)':'تخزين المتصفح (IndexedDB)'}</div><div>معرّف مخزن البيانات</div><div dir="ltr" class="small">${esc(SETTINGS.storeId)}</div><div>المساحة</div><div>${esc(est||'—')}</div></div>
   <div class="row" style="margin-top:.8rem">${FSA_OK?`<button class="btn" type="button" data-act="pickfolder">📁 ${STORE.kind==='fs'?'تغيير المجلد ونقل البيانات':'اختيار مجلد ونقل البيانات إليه'}</button>`:''}${STORE.kind==='fs'?`<button class="btn g" type="button" data-act="toidb">التحويل إلى تخزين المتصفح</button>`:''}</div>
-  <p class="mut small">النسخ الاحتياطي يكون بنسخ مجلد MEAP-Data كما هو، أو بتصدير ملف JSON من تبويب «التصدير والاستيراد». لا يُدعم ملف ZIP.</p></div>`+cloudHTML();setTimeout(async()=>{const el=$('[data-conflicts]');if(!el)return;const c=await findSyncConflicts(50);el.innerHTML=c.length?`<p class="note warn">⚠ ${c.length} ملف يبدو نسخة تعارض من تطبيق المزامنة. راجعها واحذف المكرر بعد التأكد (لا يحذف البرنامج شيئًا تلقائيًا):</p><ul class="lkl">${c.map(p=>`<li dir="ltr" class="small">${esc(p)}</li>`).join('')}</ul>`:'<p class="note ok small">✓ لا توجد نسخ تعارض من تطبيقات المزامنة.</p>'},50)}
+  <p class="mut small">النسخ الاحتياطي يكون بنسخ مجلد Audit-Plus-Data كما هو، أو بتصدير ملف JSON من تبويب «التصدير والاستيراد». لا يُدعم ملف ZIP.</p></div>`+cloudHTML();setTimeout(async()=>{const el=$('[data-conflicts]');if(!el)return;const c=await findSyncConflicts(50);el.innerHTML=c.length?`<p class="note warn">⚠ ${c.length} ملف يبدو نسخة تعارض من تطبيق المزامنة. راجعها واحذف المكرر بعد التأكد (لا يحذف البرنامج شيئًا تلقائيًا):</p><ul class="lkl">${c.map(p=>`<li dir="ltr" class="small">${esc(p)}</li>`).join('')}</ul>`:'<p class="note ok small">✓ لا توجد نسخ تعارض من تطبيقات المزامنة.</p>'},50)}
  else if(tb==='users'){const doc=USERS.doc||{users:[]};
   body=(can('users')?`<div class="tw"><table><thead><tr><th>${t('display')}</th><th>${t('username')}</th><th>${t('role')}</th><th>الحالة</th><th>أنشئ</th><th class="noprint">إجراءات</th></tr></thead><tbody>${doc.users.map(u=>`<tr><td><b>${esc(USERS.nameOf(u.id))}</b>${u.id===SESSION.id?' <span class="b ok">أنت</span>':''}</td><td dir="ltr">${esc(USERS.logins[u.id]||'')}</td><td><select class="st" data-act-change="urole" data-id="${u.id}" aria-label="الدور">${ROLES.map(r=>`<option value="${r}"${u.role===r?' selected':''}>${ROLEN(r)}</option>`).join('')}</select></td><td>${u.active===false?'<span class="b bad">معطل</span>':'<span class="b ok">نشط</span>'}</td><td class="sm">${esc(String(u.created||'').slice(0,10))}</td>
    <td class="noprint"><div class="row"><button class="btn g sm" type="button" data-act="upw" data-id="${u.id}">كلمة مرور جديدة</button><button class="btn g sm" type="button" data-act="uname" data-id="${u.id}">الاسم</button>${u.id!==SESSION.id?`<button class="btn g sm" type="button" data-act="uact" data-id="${u.id}">${u.active===false?'تفعيل':'تعطيل'}</button><button class="btn d sm" type="button" data-act="udel" data-id="${u.id}">${t('del')}</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>
@@ -166,7 +174,7 @@ async function exportJSON(scope,withAtt){await SAVER.flush();await CO.load();con
    item.engagements.push({year:String(e.year),ops,attachments:att})}
   out.companies.push(item)}
  if(scope==='all'){out.settings=Object.assign({},SETTINGS);out.users=USERS.doc}
- const blob=new Blob([JSON.stringify(out)],{type:'application/json'});const name=`MEAP-export-${scope==='eng'?sanitizeName(CUR_LAST.cid+'-'+CUR_LAST.year):'all'}-${today()}.json`;
+ const blob=new Blob([JSON.stringify(out)],{type:'application/json'});const name=`Audit-Plus-export-${scope==='eng'?sanitizeName(CUR_LAST.cid+'-'+CUR_LAST.year):'all'}-${today()}.json`;
  downloadBlob(blob,name);audit('export',{scope,att:!!withAtt});toast(`تم التصدير: ${name} (${fmtSize(blob.size)})`,'s')}
 const KEYRX=/^[A-Za-z0-9_:~.\-]{1,300}$/;
 function validateExport(d){const er=[];if(!d||typeof d!=='object')return['الملف ليس كائن JSON.'];if(d.format!=='MEAP-export')er.push('حقل format يجب أن يكون "MEAP-export".');if(typeof d.version!=='number'||d.version<2||d.version>3)er.push('إصدار الملف غير مدعوم (المدعوم: 2 و3).');

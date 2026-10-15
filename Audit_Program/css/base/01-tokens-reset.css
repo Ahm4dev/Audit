@@ -1,4 +1,4 @@
-/* MEAP · Design tokens, themes, reset & typography */
+/* Audit-Plus · Design tokens, themes, reset & typography */
 :root{--bg:#f3f5f9;--card:#fff;--tx:#17202d;--mut:#566378;--bd:#dae1eb;--bd2:#c3cedc;--pri:#0f3a68;--pri2:#1a5ca3;--acc:#0b7a6e;--hi:#b42318;--md:#9a5507;--lo:#15703a;--soft:#eef2f8;--th:#e7edf6;--chip:#e6eef9;--focus:#2b7be0;--hdr:#0f3a68;--hdrtx:#fff;
  --sh:0 1px 2px rgba(16,30,54,.06),0 3px 10px rgba(16,30,54,.05);--r:12px;--rs:8px;--gap:clamp(.5rem,1.1vw,1rem);--pad:clamp(.6rem,1.6vw,1.2rem);
  --hdr-h:56px;--tabs-h:0px;--stick:calc(var(--hdr-h) + var(--tabs-h));--fs-scale:1;--tap:40px;--hiB:#fde4e1;--mdB:#fff0d4;--loB:#ddf3e5}

@@ -1,4 +1,4 @@
-/* MEAP · Views: ISA & documentation */
+/* Audit-Plus · Views: ISA & documentation */
 'use strict';
 /* ===== ISA & documentation ===== */
 V.isa=function(){return `<h1>فهرس معايير المراجعة الدولية (ISA Index)</h1><p class="sub">ISA ← Requirement ← Audit Area ← Procedures ← Working Papers.</p><div class="tw"><table><thead><tr><th>ISA</th><th>موضوع المعيار</th><th>أين يستخدم؟</th><th>الإجراءات الرئيسية</th><th>إجراءات</th><th>أوراق العمل</th></tr></thead><tbody>${ISA.map(s=>{const wps=W.filter(w=>split(w[4]).indexOf(s[0])>-1).map(w=>w[0]);const np=PROCS.filter(p=>p.isa.indexOf(s[0])>-1).length;return `<tr><td><a href="${L('isa/'+s[0])}"><b>ISA ${s[0]}</b></a></td><td><b>${esc(s[2])}</b><br><span class="mut">${esc(s[1])}</span></td><td class="sm">${esc(s[3])}</td><td class="sm">${esc(s[4])}</td><td>${np}</td><td>${wpL(wps.slice(0,10).join(' '))}${wps.length>10?` <a href="${L('isa/'+s[0])}">+${wps.length-10}</a>`:''}</td></tr>`}).join('')}</tbody></table></div>`};
@@ -9,7 +9,7 @@ V.docs=function(){return `<h1>متطلبات توثيق المراجعة (ISA 23
  <div class="tw"><table><thead><tr><th>المتطلب</th><th>الوصف والتطبيق العملي</th></tr></thead><tbody>${DOCR.map(d=>`<tr><td><b>${esc(d[0])}</b><br><span class="mut">${esc(d[1])}</span></td><td class="tx">${esc(d[2])}</td></tr>`).join('')}</tbody></table></div>
  <h2>علامات المراجعة القياسية (Tick Marks)</h2><div class="tw"><table><thead><tr><th>العلامة</th><th>المعنى</th></tr></thead><tbody>${TICK.map(x=>`<tr><td style="font-size:1.1rem;text-align:center">${esc(x[0])}</td><td>${esc(x[1])}</td></tr>`).join('')}</tbody></table></div>
  <h2>نظام ترميز أوراق العمل</h2><div class="tw"><table><thead><tr><th>القسم</th><th>المحتوى</th><th>النماذج</th></tr></thead><tbody>${Object.keys(WSEC).map(k=>`<tr><td class="ref">${k}</td><td>${esc(WSEC[k])}</td><td>${W.filter(w=>w[0].split('-')[0]===k).length}</td></tr>`).join('')}</tbody></table></div>
- <h2>هيكل مجلد الحفظ</h2><div class="card"><pre style="white-space:pre-wrap;margin:0;font-size:.82rem" dir="ltr">MEAP-Data/
+ <h2>هيكل مجلد الحفظ</h2><div class="card"><pre style="white-space:pre-wrap;margin:0;font-size:.82rem" dir="ltr">Audit-Plus-Data/
 ├─ _settings.json
 ├─ _users/users.json
 └─ companies/

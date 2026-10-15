@@ -1,4 +1,4 @@
-/* MEAP · UI primitives: toasts, dialogs, table fitting, shell, status */
+/* Audit-Plus · UI primitives: toasts, dialogs, table fitting, shell, status */
 'use strict';
 /* ================= a4 · UI primitives: toasts, in-page dialogs, table fitting, shell, status ================= */
 function toast(msg,type,ms,action){const box=$('#toasts');if(!box)return;const el=document.createElement('div');el.className='toast '+(type||'');el.setAttribute('role',type==='e'?'alert':'status');
@@ -45,7 +45,7 @@ const CE=(()=>{try{const d=document.createElement('div');d.contentEditable='plai
 const UI={
  shell(){$('#app').innerHTML=`<header class="top" id="top">
   <button class="ib" id="menuBtn" type="button" data-act="menu" aria-expanded="false" aria-controls="nav" aria-label="${esc(t('menu'))}">☰</button>
-  <a class="brand" href="#/">MEAP<small>البرنامج الرئيسي للمراجعة الخارجية · ISA</small></a>
+  <a class="brand" href="#/">Audit-Plus<small>البرنامج الرئيسي للمراجعة الخارجية · ISA</small></a>
   <form class="srch" id="sf" role="search"><label class="sr" for="q">${esc(t('search'))}</label><input id="q" type="search" autocomplete="off" enterkeyhint="search"></form>
   <div class="tools">
    <button class="ib" id="srchBtn" type="button" data-act="srch" aria-label="${esc(t('search'))}">🔍</button>

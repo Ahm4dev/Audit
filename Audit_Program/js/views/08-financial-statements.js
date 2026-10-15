@@ -1,4 +1,4 @@
-/* MEAP · View: Financial statements & accounts */
+/* Audit-Plus · View: Financial statements & accounts */
 'use strict';
 /* ===== Financial statements & accounts ===== */
 const FSN={A:'الأصول (Assets)',L:'الالتزامات (Liabilities)',E:'حقوق الملكية (Equity)',P:'الربح أو الخسارة (P&L)',O:'الدخل الشامل الآخر وحقوق الملكية (OCI)'};

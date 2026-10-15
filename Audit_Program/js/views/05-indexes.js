@@ -1,4 +1,4 @@
-/* MEAP · Indexes (stable content-based IDs) and audit views */
+/* Audit-Plus · Indexes (stable content-based IDs) and audit views */
 'use strict';
 /* ================= a5 · Indexes (stable content-based IDs) and audit views ================= */
 const WP={};

@@ -1,4 +1,4 @@
-/* MEAP · v10 · DOM → Excel converter: exports a rendered worksheet exactly as it appears (content + formatting) */
+/* Audit-Plus · v10 · DOM → Excel converter: exports a rendered worksheet exactly as it appears (content + formatting) */
 'use strict';
 /* =====================================================================================================
    The page is rendered in a hidden 1200px-wide iframe (so media queries behave like a desktop and the

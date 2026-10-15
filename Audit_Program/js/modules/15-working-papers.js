@@ -1,4 +1,4 @@
-/* MEAP · Working papers, attachments, links, findings, report, search, audit */
+/* Audit-Plus · Working papers, attachments, links, findings, report, search, audit */
 'use strict';
 /* ================= a5b · Working papers, attachments, links, findings, report, search, audit ================= */
 function gridCols(ref,g,w){if(g==='x')return XCOLS;if(g==='a')return ACOLS;w=w||WP[ref];const K=KINDS[w.k]||KINDS.tod;return String(w.cols||K[1]||KINDS.tod[1]).split('|')}

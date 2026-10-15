@@ -1,4 +1,4 @@
-/* MEAP · v11 · English phrases for the v11 screens (trial-balance import, COSO, zakat & tax, IFRS 18, charts, Egyptian compliance sheets).
+/* Audit-Plus · v11 · English phrases for the v11 screens (trial-balance import, COSO, zakat & tax, IFRS 18, charts, Egyptian compliance sheets).
  Extends the runtime dictionary used by v10/70-i18n-engine.js. Keys are Arabic phrases (numbers written as #). */
 'use strict';
 Object.assign(I18N_EN,{
@@ -1192,4 +1192,12 @@ Object.assign(I18N_EN,{
 "فرق ضمن أهمية الأداء":"difference(s) within performance materiality",
 "إرشادات المراجع لهذا النموذج":"Reviewer guidance for this template",
 "استنتاج النموذج":"Template conclusion",
+"⚠️ مجلد الحفظ السابق":"⚠️ The previous save folder",
+"غير موجود (ربما حُذف أو نُقل أو أُعيدت تسميته).":"does not exist (it may have been deleted, moved or renamed).",
+"اختر مكان حفظ جديدًا للمتابعة. إن كان لديك نسخة من المجلد القديم (مثل":"Choose a new save location to continue. If you have a copy of the old folder (such as",
+") فاختره لاسترجاع بياناتك وحسابات المستخدمين، وإلا فسيُنشأ مجلد جديد فارغ.":") choose it to restore your data and user accounts; otherwise a new empty folder will be created.",
+"📁 اختيار مكان حفظ جديد":"📁 Choose a new save location",
+"اختيار مكان حفظ جديد":"Choose a new save location",
+"استخدام تخزين المتصفح مؤقتًا":"Use browser storage for now",
+"يمكنك استخدام أي كلمة مرور بلا شروط. تُحفظ كلمة المرور كبصمة مملّحة (PBKDF2) واسم المستخدم مشفّرًا (AES-GCM).":"You can use any password, with no requirements. The password is stored as a salted hash (PBKDF2) and the username is encrypted (AES-GCM).",
 });

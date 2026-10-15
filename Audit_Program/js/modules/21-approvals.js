@@ -1,4 +1,4 @@
-/* MEAP · Approval chain, lock, inbox, assignment, comments, bulk actions */
+/* Audit-Plus · Approval chain, lock, inbox, assignment, comments, bulk actions */
 'use strict';
 /* ================= a12 · Approval chain (preparer → reviewer → partner → EQR), lock, inbox, assignment, threaded comments, bulk actions ================= */
 const APS={NS:'لم يبدأ',PR:'أعدّها المعدّ',RV:'راجعها المراجع',PA:'اعتمدها الشريك',QR:'اعتمدها مراجع الجودة',RT:'مُعادة للتعديل'};

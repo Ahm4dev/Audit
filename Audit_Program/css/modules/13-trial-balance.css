@@ -1,4 +1,4 @@
-/* MEAP · Trial balance, virtual table, combobox */
+/* Audit-Plus · Trial balance, virtual table, combobox */
 /* ---------- v3: trial balance, virtual table, combobox ---------- */
 .vt{--vt-cols:1fr;border:1px solid var(--bd);border-radius:var(--rs);background:var(--card)}
 .vt-h{display:grid;grid-template-columns:var(--vt-cols);position:sticky;top:var(--stick);z-index:5;background:var(--th);border-bottom:1px solid var(--bd2);font-size:.8rem;font-weight:700}

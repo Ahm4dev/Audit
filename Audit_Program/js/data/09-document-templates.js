@@ -1,4 +1,4 @@
-/* MEAP data · Forms, letters & report templates */
+/* Audit-Plus data · Forms, letters & report templates */
 /* ===== Templates (forms, letters, reports) — part 1: engagement, planning, risk =====
    Structure: {id, cat, ar, en, isa, wp, desc, vars:[[id,label,default]], opts:[[id,label,[[v,label]...],default]], secs:[[id,heading,[paragraphs],cond]]}
    Paragraph syntax: "- " bullet · "{cond}" prefix = include only if condition · {{var}} merge field.

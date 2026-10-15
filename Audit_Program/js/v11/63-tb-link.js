@@ -1,4 +1,4 @@
-/* MEAP · v11 · TB linkage report: proves that every balance reaches the worksheets, statements and analytics with the right sign. */
+/* Audit-Plus · v11 · TB linkage report: proves that every balance reaches the worksheets, statements and analytics with the right sign. */
 'use strict';
 TBTABS.splice(4,0,['link','🧭 تقرير الربط']);
 function tbLinkData(){const rows=TBSTORE.rows;const am=areaMap();const adj=tbAdjMap(CUR.eng);

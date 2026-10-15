@@ -1,4 +1,4 @@
-/* MEAP · v10 · Sidebar (worksheet tree) — the ONLY stylesheet that styles #nav.
+/* Audit-Plus · v10 · Sidebar (worksheet tree) — the ONLY stylesheet that styles #nav.
    Three visually distinct levels (sub-papers live as tabs INSIDE their main worksheet, never in the tree):
      L1  section        .ngs   (e.g. Plans and Procedures)       — filled bar, large bold title, progress pill
      L2  group          .ngg   (e.g. Current liabilities)        — accent rail + marker, medium bold title

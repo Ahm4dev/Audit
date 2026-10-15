@@ -1,4 +1,4 @@
-/* MEAP · v8 · PBC actions — الأحداث والحوارات والإجراءات الجماعية */
+/* Audit-Plus · v8 · PBC actions — الأحداث والحوارات والإجراءات الجماعية */
 'use strict';
 /* ---------- حالة بند + التواريخ التلقائية (مصدر واحد للمنطق) ---------- */
 function pbStatusPatch(id,st,over){const o={};const r=pbRow(id)||{};const today=pbToday();over=over||{};

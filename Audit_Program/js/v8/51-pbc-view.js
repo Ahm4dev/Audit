@@ -1,4 +1,4 @@
-/* MEAP · v8 · PBC view — لوحة المتابعة، القائمة، ملف العميل، المتابعة، التغطية */
+/* Audit-Plus · v8 · PBC view — لوحة المتابعة، القائمة، ملف العميل، المتابعة، التغطية */
 'use strict';
 const PBUI={tab:'dash',f:{q:'',st:'',pr:'',ph:'',ow:'',doc:'',cat:'',show:''},open:new Set(),sel:new Set(),xr:new Set(),all:false};
 const PB_TABS=[['dash','لوحة المتابعة'],['list','قائمة المتطلبات'],['profile','ملف العميل'],['follow','المتابعة والمراسلات'],['cover','تغطية القوائم'],['io','تصدير واستيراد']];

@@ -1,4 +1,4 @@
-# MEAP — البرنامج الرئيسي للمراجعة الخارجية (v4.3.7) — نسخة مقسّمة
+# Audit-Plus — البرنامج الرئيسي للمراجعة الخارجية (v4.3.7) — نسخة مقسّمة
 
 هذا المشروع هو نفس الملف الأصلي `Master_External_Audit_Program_v4-3-7.html` بعد تقسيمه إلى ملفات صغيرة مرتبة في مجلدات،
 **بدون أي تغيير في الكود الفعلي** (التقسيم قصّ فقط؛ الأسطر نفسها). افتح `index.html` مباشرة في المتصفح (لا يحتاج خادمًا).
@@ -6,7 +6,7 @@
 ## الهيكل
 
 ```
-MEAP/
+Audit-Plus/
 ├─ index.html                  ← نقطة الدخول: يحمّل كل ملفات CSS و JS بالترتيب الصحيح
 ├─ css/                        ← التنسيقات (الترتيب مهم: الأحدث يغلب الأقدم)
 │  ├─ base/                    ← الخطوط، المتغيرات (tokens)، الـ reset
@@ -27,9 +27,9 @@ MEAP/
 │  ├─ app/                     ← البوابة والتوجيه والإعدادات، الأحداث ودورة الحياة، و 44-main.js (يستدعي boot)
 │  ├─ v4/                      ← طبقة V4 (ميزان المراجعة، الحسابات، الكتالوج، العينات، التحليلات، الغلاف…)
 │  └─ standalone/              ← سكربتان مستقلان: إبلاغ ارتفاع الـ iframe، إخفاء الهيدر عند التمرير
-├─ assets/fonts/               ← خطوط MEAP Plex (woff2) — كانت مضمّنة base64 داخل الـ CSS
+├─ assets/fonts/               ← خطوط Audit-Plus Plex (woff2) — كانت مضمّنة base64 داخل الـ CSS
 ├─ tools/build.js              ← يدمج كل شيء في ملف HTML واحد مستقل
-└─ dist/MEAP-standalone.html   ← ناتج البناء الجاهز (ملف واحد، يعمل بدون أي ملفات جانبية)
+└─ dist/Audit-Plus-standalone.html   ← ناتج البناء الجاهز (ملف واحد، يعمل بدون أي ملفات جانبية)
 ```
 
 ## قواعد مهمة للصيانة
@@ -50,8 +50,8 @@ MEAP/
 ## البناء كملف واحد
 
 ```bash
-node tools/build.js                  # ← dist/MEAP-standalone.html
-node tools/build.js out/MEAP.html    # ← مسار مخصص
+node tools/build.js                  # ← dist/Audit-Plus-standalone.html
+node tools/build.js out/Audit-Plus.html    # ← مسار مخصص
 ```
 
 لا يحتاج أي حزم. الأداة تقرأ الترتيب من `index.html` وتدمج CSS و JS والخطوط (base64) في ملف واحد.
@@ -83,13 +83,13 @@ node tools/build.js out/MEAP.html    # ← مسار مخصص
   لإضافة بنود للمكتبة: أضف أسطرًا بصيغة `نص|شرط|مرجع|أولوية|مرحلة` في أحد ملفات المكتبة (انظر رأس كل ملف) أو استخدم «إضافة متطلب» من الواجهة لبند خاص بالعميل.
 - **الاستفسارات** — `js/data/21-iq-lib.js` (المكتبة القياسية) · `js/v8/54-iq.js` · `css/v8/28-iq.css`. تظهر داخل ورقة كل مجال والأوراق الرئيسية للتخطيط والمخاطر والاستجابة والإقفال، وتُجمَّع في تبويب «الاستفسارات».
 - **الواجهة** — `js/v8/55-shell.js` · `css/v8/29-shell.css`: هيدر مدمج في صف واحد، ولوحة «نظرة عامة» مختصرة (المؤشرات التفصيلية القديمة محفوظة داخل قسم قابل للطي).
-- **البناء**: `node tools/build.js` ينتج `dist/MEAP-standalone.html`.
+- **البناء**: `node tools/build.js` ينتج `dist/Audit-Plus-standalone.html`.
 
 ## v9 — Theme refresh (colours, font, sidebar)
 - `css/v9/30-theme.css`: palette tokens (light + dark), typography, shared components. Re-brand by editing `--pri/--pri2/--acc/--btn` only.
 - `css/v9/31-shell.css`: light header, compact one-row tabs on tablets, 320px-safe header, toast/FAB stacking.
 - `css/v10/sidebar.css`: the only stylesheet for the sidebar (desktop column + mobile drawer, breakpoint 800px) — see v10 below.
-- Font: "MEAP Sans" = Cairo variable (OFL) in `assets/fonts/meap-sans-*.woff2` (replaces IBM Plex). Digits are tabular by default.
+- Font: "Audit-Plus Sans" = Cairo variable (OFL) in `assets/fonts/audit-plus-sans-*.woff2` (replaces IBM Plex). Digits are tabular by default.
 
 ## v10 — تحسينات الإصدار الأخير
 - **تصدير Excel**: `js/v10/60-xlsx-rich.js` (كاتب XLSX غني: دمج خلايا، ألوان، حدود، تجميد، RTL/LTR، قوائم) · `61-export-dom.js` (تحويل ورقة العمل بكامل محتواها وتنسيقها) · `62-export-ui.js` (تصدير الورقة / الصفحة / **كل الأوراق** في ملف واحد).
@@ -98,7 +98,7 @@ node tools/build.js out/MEAP.html    # ← مسار مخصص
 - **حذف الورقة المكررة** SD-2 من `js/data/11-catalog.js`.
 - **عربي / English كامل**: `70-i18n-engine.js` (ترجمة الواجهة والمحتوى لحظياً) + `71-i18n-dict.js` (قاموس ~15,900 نص، مولَّد). زر 🌐 في الشريط العلوي وشاشة الدخول؛ التصدير يتبع اللغة.
 - **خطوط متجاوبة** (من الهاتف حتى 4K) في `css/v10/v10.css`، وتتحكم بها «حجم الخط» في الإعدادات.
-- لإعادة البناء: `node tools/build.js` ← `dist/MEAP-standalone.html`.
+- لإعادة البناء: `node tools/build.js` ← `dist/Audit-Plus-standalone.html`.
 
 ### v10.1
 - **التوقيعات = حالة الورقة:** حُذف قسما «الاعتماد والجاهزية» و«المرجعية المحاسبية والقانونية في مصر». يبقى قسم **التوقيعات** أسفل كل ورقة (المُعِدّ ← المراجع ← الشريك بهذا الترتيب)؛ توقيع الشريك يقفل الورقة، وإلغاؤه يعيد فتحها، ويتحدّث «سير العمل» ونسبة الإنجاز تلقائياً. (`js/modules/21-approvals.js`، معالج `sign/unsign` في `js/app/29-events-lifecycle.js`). مسار الاعتماد الكامل ما زال للنماذج والخطابات.
@@ -114,3 +114,13 @@ node tools/build.js out/MEAP.html    # ← مسار مخصص
 - تصدير Excel لكل الأوراق (`80-export-tables.js`)، ترجمة عربي/إنجليزي (`72-i18n-v11.js` يُولَّد).
 - تحميل الصفحة: كل السكربتات `defer` بترتيبها (تحميل متوازٍ بلا حجب)؛ `tools/build.js` يبني نسخة مستقلة.
 - تنظيف: حُذفت الدوال المكررة/القديمة المُظلَّلة (wpDef, navHTML, renderEng, buildAccounts … ).
+
+
+## تغييرات Audit-Plus
+
+- أُعيدت تسمية البرنامج إلى **Audit-Plus** (العنوان، الواجهة، أسماء الملفات المصدّرة، مجلد الحفظ `Audit-Plus-Data`).
+  المجلدات القديمة `MEAP-Data` ما زالت مقبولة، ومعرّفات صيغ الملفات الداخلية (`format: 'MEAP-…'`) ومفاتيح التخزين (`meap.*`) بقيت كما هي
+  حتى تبقى البيانات القديمة قابلة للقراءة والاستيراد.
+- **مجلد الحفظ المحذوف:** إذا حُذف مجلد الحفظ أو نُقل، تظهر شاشة تتيح اختيار مكان حفظ جديد (أو استخدام تخزين المتصفح)، وكذلك
+  تظهر أداة اختيار مكان جديد عند فشل الحفظ أثناء العمل.
+- **كلمة المرور:** بلا أي شروط؛ تُقبل أي كلمة مرور (حتى `123`).

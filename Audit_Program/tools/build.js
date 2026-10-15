@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * MEAP — build a single self-contained HTML file from the multi-file source.
+ * Audit-Plus — build a single self-contained HTML file from the multi-file source.
  *
- *   node tools/build.js                 → dist/MEAP-standalone.html
+ *   node tools/build.js                 → dist/Audit-Plus-standalone.html
  *   node tools/build.js out/my.html     → custom output path
  *
  * No dependencies. index.html is the single source of truth for ORDER:
@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const outFile = path.resolve(process.cwd(), process.argv[2] || path.join(root, 'dist', 'MEAP-standalone.html'));
+const outFile = path.resolve(process.cwd(), process.argv[2] || path.join(root, 'dist', 'Audit-Plus-standalone.html'));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8').replace(/\r\n/g, '\n');
 const MIME = { '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf', '.otf': 'font/otf', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
 

@@ -1,4 +1,4 @@
-/* MEAP · V5 content (breadcrumbs, cards, tables, forms, buttons, dialogs) */
+/* Audit-Plus · V5 content (breadcrumbs, cards, tables, forms, buttons, dialogs) */
 /* ================================================================
    المحتوى
    ================================================================ */
@@ -40,7 +40,7 @@ td{padding:.55rem .65rem;border-bottom:1px solid color-mix(in srgb,var(--bd) 75%
 .tw table:not(.stack) thead tr:first-child th:first-child{border-start-start-radius:11px}
 .tw table:not(.stack) thead tr:first-child th:last-child{border-start-end-radius:11px}
 tbody tr:hover td{background:color-mix(in srgb,var(--pri2) 5%,transparent)}
-.wpl,.ref{font-family:"MEAP Sans",Consolas,"Courier New",monospace}
+.wpl,.ref{font-family:"Audit-Plus Sans",Consolas,"Courier New",monospace}
 .wpl{border:1px solid color-mix(in srgb,var(--pri2) 20%,transparent);font-weight:600;padding:0 .5rem}
 a.wpl:hover{background:var(--pri2);color:#fff;text-decoration:none}
 

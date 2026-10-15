@@ -1,4 +1,4 @@
-/* MEAP · V4 · Analytics Hub (part of 52_fs) */
+/* Audit-Plus · V4 · Analytics Hub (part of 52_fs) */
 'use strict';
 /* =====================================================================
    Analytics Hub — ratios with expectations, horizontal/vertical analysis, DuPont, flux — linked to risks and WPs

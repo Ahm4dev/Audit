@@ -1,4 +1,4 @@
-/* MEAP · v11 · Excel export quality layer
+/* Audit-Plus · v11 · Excel export quality layer
    1) large tables (> XS.MIN rows) leave the narrative sheet and become native data sheets: header row, frozen panes, auto-filter,
       typed numbers, banding, proper column widths, print titles — so they can be sorted / filtered / pivoted in Excel;
    2) every exported sheet gets frozen title rows and anti-clipping row heights (merged cells never auto-fit in Excel);

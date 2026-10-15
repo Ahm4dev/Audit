@@ -1,4 +1,4 @@
-/* MEAP · v10 · Excel export UI: one worksheet, any page, or ALL worksheets (full content + formatting) */
+/* Audit-Plus · v10 · Excel export UI: one worksheet, any page, or ALL worksheets (full content + formatting) */
 'use strict';
 const XU=(()=>{
  const isAr=()=>(PREF&&PREF.lang)!=='en';
@@ -20,7 +20,7 @@ const XU=(()=>{
  function wpHTML(ref){const sv={lock:CUR.lock,wp:PRES.cur.wp,focus:CT.focus,view:CUR.view,arg:CUR.arg};window.MEAP_EXPORT=true;try{return V.wp(ref)}finally{window.MEAP_EXPORT=false;CUR.lock=sv.lock;PRES.cur.wp=sv.wp;CT.focus=sv.focus;CUR.view=sv.view;CUR.arg=sv.arg}}
  function mainRefFor(ref){const it=CT.items&&CT.items[ref];if(it&&it.area&&it.kind!=='main'&&CT.areaBy[it.area]&&CT.items[CT.areaBy[it.area].main])return CT.areaBy[it.area].main;return ref}
  async function sheetFromHTML(S,html,o,used){await XD.renderHTML(S,html);const extra=XS.extractTables(S,o.name,used,o.title);const sh=XD.convert(S,o);sh.extra=extra;return sh}
- async function save(sheets,name,meta){const blob=await XR.build(sheets,Object.assign({title:name,author:(typeof SESSION!=='undefined'&&SESSION.display)||'MEAP',font:'Arial'},meta||{}));downloadBlob(blob,sanitizeName(name,100)+'.xlsx')}
+ async function save(sheets,name,meta){const blob=await XR.build(sheets,Object.assign({title:name,author:(typeof SESSION!=='undefined'&&SESSION.display)||'Audit-Plus',font:'Arial'},meta||{}));downloadBlob(blob,sanitizeName(name,100)+'.xlsx')}
  const fail=e=>{try{logErr('xlsx',e)}catch(x){/* ignore */}unoverlay();busy.on=false;toast((isAr()?'تعذّر التصدير: ':'Export failed: ')+errMsg(e),'e')};
 
  /* ---- 1) one worksheet ---- */

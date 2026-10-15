@@ -1,4 +1,4 @@
-/* MEAP · v11 · Zakat & income-tax expense paper (PL / ITX · 1900.110).
+/* Audit-Plus · v11 · Zakat & income-tax expense paper (PL / ITX · 1900.110).
    Current income tax (taxable-income build-up) + deferred tax movement (IAS 12) + zakat (base build-up) → total vs the TB line «taxx»,
    with an effective-rate reconciliation. Statutory rates are inputs (default: Egypt corporate rate 22.5 %, zakat 2.5 %) and must be confirmed to the law in force. */
 'use strict';

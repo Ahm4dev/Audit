@@ -1,4 +1,4 @@
-/* MEAP · Engagement tabs */
+/* Audit-Plus · Engagement tabs */
 /* ---------- engagement tabs (sticky, wrap — never scroll) ---------- */
 .etabs{display:flex;flex-wrap:wrap;gap:.25rem;padding:.35rem var(--pad);background:var(--card);border-bottom:1px solid var(--bd);z-index:45}
 @media (min-width:768px){.etabs{position:sticky;top:var(--hdr-h)}}

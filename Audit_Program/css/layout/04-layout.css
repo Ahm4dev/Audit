@@ -1,4 +1,4 @@
-/* MEAP · Page layout */
+/* Audit-Plus · Page layout */
 /* ---------- layout ---------- */
 .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--gap);padding:var(--gap) var(--pad) 3rem;max-width:1920px;margin:0 auto}
 @media (min-width:1024px){.layout.has-nav{grid-template-columns:clamp(220px,17vw,290px) minmax(0,1fr)}}

@@ -1,4 +1,4 @@
-/* MEAP · Building blocks (cards, KPIs, chips, accordions) */
+/* Audit-Plus · Building blocks (cards, KPIs, chips, accordions) */
 /* ---------- building blocks ---------- */
 .sub{color:var(--mut);margin:0 0 .8rem}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:var(--pad);margin:.6rem 0;box-shadow:var(--sh)}

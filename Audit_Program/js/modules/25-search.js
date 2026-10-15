@@ -1,4 +1,4 @@
-/* MEAP · Background search index, saved filters, shortcuts help */
+/* Audit-Plus · Background search index, saved filters, shortcuts help */
 'use strict';
 /* ================= a16 · Background search index (incremental), paginated results, saved filters, shortcuts help ================= */
 /* Library index: built once in idle time, in chunks (never blocks the UI). Engagement data: normalised text cached per key and

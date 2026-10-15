@@ -1,4 +1,4 @@
-/* MEAP · Users & authentication */
+/* Audit-Plus · Users & authentication */
 'use strict';
 /* ================= a2 · Users & authentication (Web Crypto only) =================
  _users/users.json:
@@ -25,7 +25,8 @@ async function userHash(u,uSalt){return b64(await pbkdf2(normU(u),unb64(uSalt),U
 async function passDerive(pw,salt){const bits=await pbkdf2(pw,salt,KDF_IT,512);return{verifier:b64(await sha256(bits.slice(0,32))),kek:await aesKey(bits.slice(32),false)}}
 function ctEq(a,b){a=String(a);b=String(b);if(a.length!==b.length)return false;let r=0;for(let i=0;i<a.length;i++)r|=a.charCodeAt(i)^b.charCodeAt(i);return r===0}
 const pvOf=async rec=>b64(await sha256(ENC.encode(rec.pSalt+'|'+rec.pHash))).slice(0,22);
-function pwPolicy(pw){if(String(pw).length<8)return 'كلمة المرور يجب ألا تقل عن 8 أحرف.';if(!/[A-Za-z؀-ۿ]/.test(pw)||!/\d/.test(pw))return 'كلمة المرور يجب أن تحتوي على حروف وأرقام.';return ''}
+/* Audit-Plus: no password rules — any password is accepted (even a short or numeric one such as 123) */
+function pwPolicy(pw){return ''}
 
 let SESSION=null;           /* {id, role, display, username, dk(CryptoKey), dkRaw(Uint8Array), pv} */
 const USERS={doc:null,mtime:0,names:{},logins:{},

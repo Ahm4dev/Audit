@@ -1,4 +1,4 @@
-/* MEAP · Tables (responsive stacked cards) */
+/* Audit-Plus · Tables (responsive stacked cards) */
 /* ---------- tables: never scroll; become stacked cards when they don't fit ---------- */
 .tw{border:1px solid var(--bd);border-radius:var(--rs);background:var(--card);margin:.5rem 0}
 table{border-collapse:separate;border-spacing:0;width:100%;font-size:.86rem}

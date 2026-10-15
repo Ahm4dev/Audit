@@ -1,4 +1,4 @@
-/* MEAP data · FS classification taxonomy */
+/* Audit-Plus data · FS classification taxonomy */
 /* =====================================================================
    v4 · Classification taxonomy (التبويب) — statement → group → sub-class → detailed note
    Each row: stmt | group | sub | note | FS-line id (existing account line, for working-paper links) | keywords (ar/en, comma separated)

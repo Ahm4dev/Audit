@@ -1,4 +1,4 @@
-/* MEAP · Trial-balance Web Worker (serialised via toString into a Blob) */
+/* Audit-Plus · Trial-balance Web Worker (serialised via toString into a Blob) */
 'use strict';
 /* ================= a11w · Trial-balance worker (runs in a Blob Web Worker; no libraries) =================
    - CSV/TSV parser (, ; Tab, quotes, UTF-8 / Windows-1256 detection)

@@ -1,4 +1,4 @@
-/* MEAP v11 — trial-balance smart import, COSO, tax/zakat, charts, data-quality widgets */
+/* Audit-Plus v11 — trial-balance smart import, COSO, tax/zakat, charts, data-quality widgets */
 /* ---- stepper ---- */
 .tbi-steps{display:flex;gap:0;list-style:none;margin:0 0 14px;padding:0;counter-reset:s;flex-wrap:wrap}
 .tbi-steps li{flex:1 1 140px;display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:3px solid var(--bd,#d8dfdc);color:var(--mut,#6b7a76);font-size:.92rem}

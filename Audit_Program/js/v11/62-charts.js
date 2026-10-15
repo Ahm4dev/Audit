@@ -1,4 +1,4 @@
-/* MEAP · v11 · Inline SVG chart kit (no dependencies, theme-aware, print/Excel friendly) + analytics charts. */
+/* Audit-Plus · v11 · Inline SVG chart kit (no dependencies, theme-aware, print/Excel friendly) + analytics charts. */
 'use strict';
 const XC=(()=>{
  const PAL=['#1f6f5c','#d9a21a','#4c78a8','#b0527a','#7a8f2a','#8c6d4f'];

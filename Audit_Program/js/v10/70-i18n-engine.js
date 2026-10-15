@@ -1,4 +1,4 @@
-/* MEAP · v10 · Runtime Arabic → English translation layer.
+/* Audit-Plus · v10 · Runtime Arabic → English translation layer.
    The UI and all professional content are authored in Arabic. When PREF.lang==='en' every text node / label / placeholder shown on
    screen is translated through a phrase dictionary (js/v10/71-i18n-dict.js) using greedy longest-phrase matching; numbers are
    kept in place ("#" wildcards). User-entered data is never touched. Switching back to Arabic re-renders the page from source. */

@@ -1,4 +1,4 @@
-/* MEAP · Automated journal-entry testing (ISA 240) */
+/* Audit-Plus · Automated journal-entry testing (ISA 240) */
 'use strict';
 /* ================= a15 · Automated journal-entry testing (ISA 240) from uploaded GL data — reuses the TB worker parser ================= */
 const JEF=[['entry','رقم القيد',1],['date','تاريخ القيد',1],['pdate','تاريخ الإدخال / الترحيل'],['acct','كود الحساب',1],['aname','اسم الحساب'],['desc','البيان / الوصف'],['dr','مدين'],['cr','دائن'],['amt','المبلغ (موجب مدين / سالب دائن)'],['user','المستخدم'],['src','المصدر / نوع القيد']];

@@ -1,4 +1,4 @@
-/* MEAP · v11 · IFRS 18 presentation of the primary statements, generated from the classified trial balance.
+/* Audit-Plus · v11 · IFRS 18 presentation of the primary statements, generated from the classified trial balance.
    - Statement of profit or loss: operating / investing / financing / income-taxes / discontinued-operations categories with the three mandatory
      subtotals (operating profit; profit before financing and income taxes; profit before income taxes) then profit.
    - Notes: expenses by nature (D&A, employee benefits, impairment) and management-defined performance measures (MPMs) with reconciliation.

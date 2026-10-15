@@ -1,4 +1,4 @@
-/* MEAP · v11 · Worksheet templates — a purpose-built working template for every audit area (instead of one generic layout).
+/* Audit-Plus · v11 · Worksheet templates — a purpose-built working template for every audit area (instead of one generic layout).
    Each family of areas gets its own input grids (with live formulas), automatic tie-out to the trial balance (natural sign, after adjustments),
    status against performance materiality, and a one-click path to the findings log.  The template is placed at the top of the area's main paper;
    data are stored with the engagement (wp.<ref>.cg.* grids and wt.<ref>.* inputs) and are exported to Excel like any other table. */

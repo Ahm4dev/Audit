@@ -1,4 +1,4 @@
-/* MEAP · V5.1-V5.4 patches */
+/* Audit-Plus · V5.1-V5.4 patches */
 /* ---------- V5.1 — تحسينات بعد الفحص ---------- */
 input[type=checkbox],input[type=radio],progress{accent-color:var(--pri2)}
 .ib[disabled]{opacity:.4}

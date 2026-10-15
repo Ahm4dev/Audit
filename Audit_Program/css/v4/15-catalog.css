@@ -1,4 +1,4 @@
-/* MEAP · V4 catalog / areas */
+/* Audit-Plus · V4 catalog / areas */
 /* ===== 30_cat.css ===== */
 .matstrip{display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;align-items:center;margin:.5rem 0;padding:.4rem .8rem;background:var(--soft);border:1px solid var(--bd);border-radius:var(--rs,8px);font-size:.85rem}
 .matstrip .mst{font-weight:700;color:var(--pri)}.matstrip b{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:embed}

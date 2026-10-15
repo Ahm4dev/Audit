@@ -1,4 +1,4 @@
-/* MEAP · V4 · Shell & unified area paper (60_shell) */
+/* Audit-Plus · V4 · Shell & unified area paper (60_shell) */
 'use strict';
 /* ===== 60_shell.js ===== */
 /* =====================================================================
@@ -31,7 +31,7 @@ const NAVOPEN=new Set();let NAVQ='';
 /* Accordion: only ONE top-level sidebar tab (a worksheet section 's:*' or the extra-tools panel 'legacy') is open at a time.
    NAVLAST = the tab the user opened last (wins over the tab that holds the current page until the page changes); NAVSEEN = last view+page seen. */
 let NAVLAST='',NAVSEEN='',NAVLASTG={};   /* NAVLASTG[sectionId] = group the user opened last inside that section (same idea, one level down) */
-function curRef(){if(CUR.view!=='wp'||!CUR.arg)return'';const r=decodeURIComponent(CUR.arg);const it=CT.items[r];if(it&&it.area&&it.kind!=='main')return CT.areaBy[it.area].main;const c=CT.leg[r];if(c&&CT.items[c]&&!CT.items[r]){const ci=CT.items[c];return ci.area&&ci.kind!=='main'?CT.areaBy[ci.area].main:c}return r}
+function curRef(){if(CUR.view!=='wp'||!CUR.arg)return'';let r=String(CUR.arg);if(!CT.items[r]&&!CT.leg[r]&&r.indexOf('/')>0)r=r.split('/')[0];const it=CT.items[r];if(it&&it.area&&it.kind!=='main')return CT.areaBy[it.area].main;const c=CT.leg[r];if(c&&CT.items[c]&&!CT.items[r]){const ci=CT.items[c];return ci.area&&ci.kind!=='main'?CT.areaBy[ci.area].main:c}return r}
 function navItem(ref,cur){const it=CT.items[ref];const s=wpSt4(ref);const on=ref===cur;
  return `<a class="nw st-${s}" href="${L('wp/'+encodeURIComponent(ref))}"${on?' aria-current="page"':''} data-nq="${esc(normAr(it.disp+' '+it.ar+' '+it.en))}" title="${esc(it.ar)}"><i class="dot" aria-hidden="true"></i><span class="nd">${esc(it.disp)}</span><span class="nt">${esc(it.ar)}</span></a>`}
 function navArea(a,cur){const r=a.main;if(!CT.items[r]||ctOff(r))return'';const on=r===cur;const s=wpSt4(r);const rm=areaRmm(a.id);
@@ -44,8 +44,8 @@ function navHTML(cur0){const cur=curRef();const tree=ctTree();let h=`<div class=
  const rec=RECENT.filter(r=>CT.items[r]&&!ctOff(r)).slice(0,6);let tail='';if(rec.length)tail+=`<div class="nrec noprint"><span class="mut small">آخر ما فتحت</span>${rec.map(r=>`<a class="mapchip${r===cur?' on':''}" href="${L('wp/'+encodeURIComponent(r))}" title="${esc(CT.items[r].ar)}">${esc(CT.items[r].disp)}</a>`).join('')}</div>`;
  const allRefs=CT.order.filter(r=>!ctOff(r));const PA=catProg(allRefs);tail+=`<div class="nvp"><span>الإنجاز الكلي ${PA.p}%</span>${bar(PA.p)}</div>`;
  const seen=CUR.view+'|'+cur;if(seen!==NAVSEEN){NAVSEEN=seen;NAVLAST='';NAVLASTG={}}
- const cv=VIEW_NAV[CUR.view]||CUR.view;const legHas=NAV.some(g=>g[2].some(i=>i[0]===cv));
- let hasKey='';for(const s of tree)for(const g of s.groups)if((g.items||[]).includes(cur)||(g.areas||[]).some(a=>a.main===cur))hasKey='s:'+s.id;
+ const curOff=!!(cur&&CT.items[cur]&&ctOff(cur));let hasKey='';if(!curOff)for(const s of tree)for(const g of s.groups)if((g.items||[]).includes(cur)||(g.areas||[]).some(a=>a.main===cur))hasKey='s:'+s.id;
+ const cv=(CUR.view==='wp'&&(hasKey||curOff))?'':(VIEW_NAV[CUR.view]||CUR.view);const legHas=!!cv&&NAV.some(g=>g[2].some(i=>i[0]===cv));
  const topKeys=tree.map(s=>'s:'+s.id).concat('legacy');
  const want=NAVLAST&&topKeys.includes(NAVLAST)?NAVLAST:(hasKey||(legHas?'legacy':'')||[...NAVOPEN].find(k=>topKeys.includes(k))||'');
  for(const s of tree){const refs=[];for(const g of s.groups){refs.push(...(g.items||[]));for(const a of (g.areas||[]))refs.push(a.main)}const P=catProg(refs);const key='s:'+s.id;
@@ -54,12 +54,14 @@ function navHTML(cur0){const cur=curRef();const tree=ctTree();let h=`<div class=
   const body=s.groups.map(g=>navGroup(g,cur,s.id,gw)).join('');if(!body)continue;
   h+=`<details data-nk="${key}" class="ngs"${want===key?' open':''}><summary><span>${SEC_ICON[s.id]||'📁'} ${esc(s.ar)}</span><span class="pc" title="${P.d} من ${P.t}">${P.p}%</span></summary>${body}</details>`}
  const nOff=CT.order.filter(r=>ctOff(r)&&!CT.items[r].custom).length;
- h+=`<a class="nrb" href="${L('rbin')}"${CUR.view==='rbin'?' aria-current="page"':''}>🗑 سلة المحذوفات${nOff?` <span class="pc">${nOff}</span>`:''}</a>`;
+ h+=`<a class="nrb" href="${L('rbin')}"${(CUR.view==='rbin'||(CUR.view==='wp'&&curOff))?' aria-current="page"':''}>🗑 سلة المحذوفات${nOff?` <span class="pc">${nOff}</span>`:''}</a>`;
  h+=`<details data-nk="legacy" class="ngl"${want==='legacy'?' open':''}><summary><span>🧰 أدوات وفهارس إضافية</span></summary>${NAV.map(g=>`<div class="nlg">${esc(g[1])}</div>`+g[2].map(i=>`<a href="${L(i[0])}"${cv===i[0]?' aria-current="page"':''}><span>${esc(i[1])}</span></a>`).join('')).join('')}</details>`;
  return h+tail}
 function navFit(){const nav=$('#nav');if(!nav||nav.hidden)return;const cur=nav.querySelector('[aria-current=page]');if(!cur)return;const q=nav.querySelector('.nvq');const hid=8;const a=cur.getBoundingClientRect(),b=nav.getBoundingClientRect();if(a.top-b.top<hid||a.bottom>b.bottom-6){try{nav.scrollTop=Math.max(0,nav.scrollTop+(a.top-b.top)-Math.round(nav.clientHeight/2)+Math.round(a.height/2))}catch(e){}}}
+let NAVQUIET=0;   /* until this time, toggle events come from the sidebar render itself (details inserted with [open]) — not from the user */
 document.addEventListener('toggle',e=>{const d=e.target;if(!(d instanceof Element)||!d.matches('#nav details[data-nk]'))return;const k=d.dataset.nk;
  if(d.open)NAVOPEN.add(k);else{NAVOPEN.delete(k);if(NAVLAST===k)NAVLAST=''}
+ if(Date.now()<NAVQUIET)return;
  /* accordion for the top-level tabs only (inner groups stay independent). Skipped while the tree filter is active:
     searching deliberately expands every matching section. */
  if(NAVQ)return;
@@ -132,10 +134,10 @@ function renderEng(view,arg,keep){CUR.view=view;CUR.arg=arg;CUR.lock=false;TBSTO
  const trail=crumbTrail(view,arg);if(view!=='wp'||!trail.length){if(view!=='wp'||!CT.items[decodeURIComponent(arg||'')]){const lab=VLABEL[view]||({review:'نقاط المراجعة',queries:'الاستفسارات',hub:'مركز التحليلات',map:'الخريطة',firm:'بيانات المكتب',rbin:'سلة المحذوفات'})[view]||view;if(!trail.length||trail[trail.length-1][0]!==lab)trail.push([lab,'']);if(last&&view!=='pbc'&&view!=='queries')trail.push([last,''])}}
  const bc=`<nav class="bc noprint" aria-label="مسار التنقل"><ol><li><a href="#/">${t('companies')}</a></li><li><a href="#/c/${encodeURIComponent(CUR.company.id)}">${esc(CUR.company.name)}</a></li><li><a href="${L('dash')}">${esc(t('year'))} ${esc(CUR.eng.get('eng.year',''))}</a></li>${trail.map((x,i)=>i===trail.length-1?`<li aria-current="page">${esc(x[0])}</li>`:`<li>${x[1]?`<a href="${x[1]}">${esc(x[0])}</a>`:esc(x[0])}</li>`).join('')}</ol><span class="bcr"><a class="bcmap" href="${L('map')}">🗺 الخريطة</a>${pnHTML(view,arg)}</span></nav>`;
  if(view==='wp'&&arg){const cr=curRef();if(cr&&CT.items[cr]){const i=RECENT.indexOf(cr);if(i>-1)RECENT.splice(i,1);RECENT.unshift(cr);RECENT.length=Math.min(RECENT.length,10)}}
- const nav=$('#nav'),tb=$('#etabs');nav.hidden=false;tb.hidden=false;$('#layout').classList.add('has-nav');const st=nav.scrollTop;nav.innerHTML=navHTML();nav.scrollTop=st;tb.innerHTML=tabsHTML(view);UI.measure();
+ const nav=$('#nav'),tb=$('#etabs');nav.hidden=false;tb.hidden=false;$('#layout').classList.add('has-nav');const st=nav.scrollTop;nav.innerHTML=navHTML();nav.scrollTop=st;NAVQUIET=Date.now()+250;tb.innerHTML=tabsHTML(view);UI.measure();
  $('#main').innerHTML=bc+(RO()?`<p class="note warn noprint">${t('readonly')}</p>`:'')+html;if(view==='tb')tbAfter(arg);inboxBadge();document.dispatchEvent(new CustomEvent('meap:routed',{detail:{view,arg}}));
- const ttl=trail.length?trail[trail.length-1][0]:(VLABEL[view]||'');document.title=ttl+' — '+CUR.company.name+' '+CUR.eng.get('eng.year','')+' — MEAP';
- postRender(keep);if(CT.focus){const el=document.getElementById('sec-'+CT.focus);CT.focus='';if(el){el.scrollIntoView({block:'start'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}ensureFab();navFit();if(view==='explorer')renderRes();if(view==='sampling')calcAll(false);if(view==='audit')renderAudit();UI.presence();PRES.beat(true)}
+ const ttl=trail.length?trail[trail.length-1][0]:(VLABEL[view]||'');document.title=ttl+' — '+CUR.company.name+' '+CUR.eng.get('eng.year','')+' — Audit-Plus';
+ postRender(keep);if(CT.focus){const el=document.getElementById('sec-'+CT.focus);CT.focus='';if(el){el.scrollIntoView({block:'start'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}ensureFab();navFit();requestAnimationFrame(navFit);setTimeout(navFit,260);if(view==='explorer')renderRes();if(view==='sampling')calcAll(false);if(view==='audit')renderAudit();UI.presence();PRES.beat(true)}
 
 /* ================= unified area paper: ONE page per item with all its procedures ================= */
 const RECENT=(()=>{try{return JSON.parse(localStorage.getItem('meap.recent')||'[]')}catch(e){return[]}})();

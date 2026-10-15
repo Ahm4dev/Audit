@@ -1,4 +1,4 @@
-/* MEAP · Trial balance: upload wizard, validation, versions, FS mapping, virtual table, analytics */
+/* Audit-Plus · Trial balance: upload wizard, validation, versions, FS mapping, virtual table, analytics */
 'use strict';
 /* ================= a11 · Trial Balance: upload wizard, validation, versions (chunked files), FS mapping, TBStore, virtual table, combobox, analytics ================= */
 /* ---------- worker manager (Blob worker; cancel = terminate + recreate) ---------- */

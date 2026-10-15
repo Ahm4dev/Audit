@@ -1,4 +1,4 @@
-/* MEAP · Header (legacy) */
+/* Audit-Plus · Header (legacy) */
 /* ---------- header ---------- */
 .top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .5rem;padding:.4rem var(--pad);background:var(--hdr);color:var(--hdrtx);box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .brand{display:flex;flex-direction:column;line-height:1.2;font-weight:700;color:#fff;font-size:.98rem;margin-inline-end:auto}

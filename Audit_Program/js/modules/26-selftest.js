@@ -1,4 +1,4 @@
-/* MEAP · Link self-test (?selftest) */
+/* Audit-Plus · Link self-test (?selftest) */
 'use strict';
 /* ================= a17 · Link self-test (?selftest): every route, href, hash route, WP reference, anchor id and navigation item ================= */
 const SELFTEST={res:null,running:false,

@@ -1,4 +1,4 @@
-/* MEAP · v9 · Header, engagement bar, toasts, mobile menu button (screen only) */
+/* Audit-Plus · v9 · Header, engagement bar, toasts, mobile menu button (screen only) */
 @media screen{
 
 /* ============ icons that must follow the theme (CSS vars so dark mode can swap them) ============ */
@@ -80,7 +80,7 @@
 
 /* ============ header on very narrow phones: nothing may leave the screen (was cut off at 320px) ============ */
 @media (max-width:480px){
-  .brand::before{width:34px;height:34px;border-radius:11px;font-size:1.05rem}
+  .brand::before{width:34px;height:34px;border-radius:11px;font-size:.95rem;letter-spacing:-.02em}
   .top{padding-inline:8px}
 }
 @media (max-width:380px){

@@ -1,4 +1,4 @@
-/* MEAP · View: Cycles */
+/* Audit-Plus · View: Cycles */
 'use strict';
 /* ===== Cycles ===== */
 V.cycles=function(){return `<h1>فهرس دورات العمليات (Transaction Cycles)</h1><p class="sub">Process ← Risks ← Controls ← Control Objectives ← Walkthrough ← Tests of Controls ← Substantive ← Assertions ← Evidence ← Findings ← Conclusion.</p><div class="grid g3">${C.map(c=>{const ids=PROCS.filter(p=>p.cy===c.id&&p.src==='cyc').map(p=>p.id),g=prog(ids);return `<a class="card" href="${L('cyc/'+c.id)}" style="color:inherit;text-decoration:none;margin:0"><b style="color:var(--pri)">${esc(c.n)}</b><br><span class="mut">${esc(c.en)}</span><br><small>${c.rcm.length} ضوابط · ${ids.length} إجراءات · ${c.ac.length} حسابات</small>${bar(g.p)}</a>`}).join('')}</div>`};

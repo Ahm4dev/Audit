@@ -1,4 +1,4 @@
-/* MEAP · Relations: attachments, procedure links, references, relation graph */
+/* Audit-Plus · Relations: attachments, procedure links, references, relation graph */
 'use strict';
 /* ================= a8 · Relations: generic attachments, procedure attachments & links, references, relation graph ================= */
 /* Owner token of an attachment set: "E-04" (working paper — v2 compatible) or "pp!<procedureId>" (procedure). */
