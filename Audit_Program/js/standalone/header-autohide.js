@@ -6,7 +6,7 @@
  function hh(){var t=topEl();return t?t.offsetHeight:56}
  function locked(){var t=topEl();if(!t)return true;var q=document.getElementById('q');
   return document.body.classList.contains('nav-open')||!!(q&&document.activeElement===q)}
- function set(v){if(v===off)return;off=v;root.classList.toggle('hdr-off',v)}
+ function set(v){if(v===off)return;off=v;root.classList.add('hdr-anim');root.classList.toggle('hdr-off',v)}
  function upd(){tick=false;var y=window.pageYOffset||0;
   if(locked()||y<=hh()){set(false);last=y;return}
   var d=y-last;if(Math.abs(d)<8)return;set(d>0);last=y}

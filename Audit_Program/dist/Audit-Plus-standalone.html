@@ -518,7 +518,7 @@ input[type=checkbox],input[type=radio],progress{accent-color:var(--pri2)}
    - القائمة الجانبية: لوحة كاملة الارتفاع (سطح المكتب) / درج مع خلفية معتمة (الجوال)
    ================================================================ */
 @property --hdr-vis{syntax:'<length>';inherits:true;initial-value:56px}
-:root{--top-h:56px;--hdr-vis:var(--hdr-h);--stick:calc(var(--hdr-vis) + var(--tabs-h));transition:--hdr-vis .26s cubic-bezier(.32,.72,.28,1)}
+:root{--top-h:56px;--hdr-vis:var(--hdr-h);--stick:calc(var(--hdr-vis) + var(--tabs-h))}
 html.hdr-off{--hdr-vis:0px}
 @media (max-width:640px){:root{--top-h:52px}}
 #main:focus,#main:focus-visible{outline:none}
@@ -529,7 +529,29 @@ html.hdr-off{--hdr-vis:0px}
  background:var(--hdr);border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 10px 24px -20px rgba(0,0,0,.7);
  transition:transform .26s cubic-bezier(.32,.72,.28,1),box-shadow .26s}
 html.hdr-off .top{transform:translateY(-100%);box-shadow:none;visibility:hidden;
- transition:transform .26s cubic-bezier(.32,.72,.28,1),box-shadow .26s,visibility 0s linear .26s}
+ transition:transform .22s cubic-bezier(.32,.72,.28,1),box-shadow .22s,visibility 0s linear .22s}
+.top{will-change:transform}
+
+/* ---------- تزامن الحركة (FLIP) ----------
+   --hdr-vis يتغير فورًا فتقفز العناصر اللاصقة إلى موضعها الجديد، ثم نعيدها بصريًا
+   إلى موضعها القديم ونحرّكها بـ transform بنفس مدة وتوقيت الهيدر تمامًا،
+   فلا تظهر الصفحة في الفراغ بين الهيدر وشريط التنقل. */
+@keyframes hdrSlideUp{from{transform:translateY(var(--hdr-h))}to{transform:none}}
+@keyframes hdrSlideDown{from{transform:translateY(calc(var(--hdr-h) * -1))}to{transform:none}}
+@media (min-width:768px){
+ html.hdr-anim.hdr-off .etabs{animation:hdrSlideUp .22s cubic-bezier(.32,.72,.28,1)}
+ html.hdr-anim:not(.hdr-off) .etabs{animation:hdrSlideDown .22s cubic-bezier(.32,.72,.28,1)}
+}
+@media (min-width:800px){
+ html.hdr-anim.hdr-off #nav{animation:hdrSlideUp .22s cubic-bezier(.32,.72,.28,1)}
+ html.hdr-anim:not(.hdr-off) #nav{animation:hdrSlideDown .22s cubic-bezier(.32,.72,.28,1)}
+}
+html.hdr-anim.hdr-off :is(.vt-h,.bulkbar,.wpsecnav,th){animation:hdrSlideUp .22s cubic-bezier(.32,.72,.28,1)}
+html.hdr-anim:not(.hdr-off) :is(.vt-h,.bulkbar,.wpsecnav,th){animation:hdrSlideDown .22s cubic-bezier(.32,.72,.28,1)}
+@media (prefers-reduced-motion:reduce){
+ html.hdr-anim .etabs,html.hdr-anim #nav,html.hdr-anim :is(.vt-h,.bulkbar,.wpsecnav,th){animation:none!important}
+ html.hdr-off .top{transition:none}
+}
 .top .brand{flex:none;order:0;margin:0}
 .top .srch{order:0;flex:1 1 0;min-width:0;max-width:38rem;margin-inline:auto}
 .top .srch input{height:40px;min-height:40px;padding-block:0;text-overflow:ellipsis}
@@ -13370,7 +13392,7 @@ boot();
  function hh(){var t=topEl();return t?t.offsetHeight:56}
  function locked(){var t=topEl();if(!t)return true;var q=document.getElementById('q');
   return document.body.classList.contains('nav-open')||!!(q&&document.activeElement===q)}
- function set(v){if(v===off)return;off=v;root.classList.toggle('hdr-off',v)}
+ function set(v){if(v===off)return;off=v;root.classList.add('hdr-anim');root.classList.toggle('hdr-off',v)}
  function upd(){tick=false;var y=window.pageYOffset||0;
   if(locked()||y<=hh()){set(false);last=y;return}
   var d=y-last;if(Math.abs(d)<8)return;set(d>0);last=y}
