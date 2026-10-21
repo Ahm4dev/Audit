@@ -8663,7 +8663,7 @@ function clsCounts(){let c=0;for(const r of TBSTORE.rows)if(clsOf(r.code))c++;re
 function clsHTML(){clsLoadCompany();const tot=TBSTORE.rows.length,done=clsCounts(),pct=tot?Math.round(done*100/tot):0;const un=TBSTORE.rows.filter(r=>!clsOf(r.code));const unB=un.reduce((s,r)=>s+Math.abs(r.cb),0);const ed=can('edit');
  return `<div class="card"><p>تم تبويب <b>${done.toLocaleString('en-US')}</b> من <b>${tot.toLocaleString('en-US')}</b> حساب (${pct}%) ${un.length?`· غير مبوّب: ${un.length.toLocaleString('en-US')} حساب بإجمالي أرصدة مطلقة ${fmtA(unB)}`:'<span class="b ok">اكتمل التبويب</span>'}</p>${bar(pct)}
  <p class="mut small">التبويب أربعة مستويات: نوع القائمة (مركز مالي / دخل / دخل شامل / حقوق ملكية) ← بند القائمة (مثال: موجودات متداولة) ← التصنيف الفرعي (مثال: مخزون) ← اسم الإيضاح التفصيلي (مثال: مواد خام). كل ما يُبوَّب هنا يغذّي القوائم المالية وأوراق العمل والتحليلات تلقائيًا.</p>
- ${ed?`<div class="row"><button class="btn sm" type="button" data-w4act="clsacc" data-conf="H">قبول الاقتراحات عالية الثقة (<span id="clshi">…</span>)</button><button class="btn g sm" type="button" data-w4act="clsacc" data-conf="M">قبول عالية + متوسطة (<span id="clshm">…</span>)</button><button class="btn o sm" type="button" data-w4act="clsimp">⤒ استيراد التبويب من Excel</button><button class="btn g sm" type="button" data-w4act="clstpl">⤓ نموذج / تصدير التبويب</button></div>`:''}<span class="small mut" id="clsprog" aria-live="polite"></span></div>
+ <div class="row">${ed?`<button class="btn sm" type="button" data-w4act="clsacc" data-conf="H">قبول الاقتراحات عالية الثقة (<span id="clshi">…</span>)</button><button class="btn g sm" type="button" data-w4act="clsacc" data-conf="M">قبول عالية + متوسطة (<span id="clshm">…</span>)</button><button class="btn o sm" type="button" data-w4act="clsimp">⤒ استيراد التبويب من Excel</button>`:''}<button class="btn g sm" type="button" data-w4act="clstpl">⤓ تصدير الميزان المبوَّب / نموذج التبويب</button></div><span class="small mut" id="clsprog" aria-live="polite"></span></div>
  <div data-block="clsimp">${cimpHTML()}</div>
  <div class="card noprint tbf"><div class="fgrid"><label>بحث<input class="in" type="search" data-w4="clsq" value="${esc(CLSQ.q)}" placeholder="كود أو اسم" autocomplete="off"></label>
  <label>عرض<select class="sel" data-w4="clsf">${[['unc','غير المبوّب'],['all','كل الحسابات'],['done','المبوّب فقط']].map(o=>`<option value="${o[0]}"${CLSQ.f===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select></label>
@@ -11993,29 +11993,35 @@ const TBX_ORDER=['SFP','PL','OCI','EQ'];
 function tbClsSheets(){
  const rows=TBSTORE.rows,S=CLS_ST_NAME,auto=(CUR.eng&&CUR.eng.get('fsp.auto',null))||{};
  const py=r=>r2(TBSTORE.pyMap?TBSTORE.bal(r,{priorYear:true}):(r.py||0));
+ /* opening balances: from the TB file when it carries them; otherwise derived = last year's closing for balance-sheet accounts (P&L accounts open at zero),
+    with last year's result carried into retained earnings so the opening column balances. Movement = closing − opening. */
+ const fileOpen=rows.some(r=>r.ob||r.mvDr||r.mvCr),hasPy=!!TBSTORE.pyMap||rows.some(r=>r.py);const mode=fileOpen?'file':hasPy?'derived':'none';
+ let reCode=null,pyPL=0;if(mode==='derived')for(const r of rows){const c=clsOf(r.code);if(!c||!S[c.st])continue;if(c.st==='PL'||c.st==='OCI')pyPL+=py(r);else if(!reCode&&/أرباح مرحلة|أرباح محتجزة|ارباح مرحلة|retained/i.test((c.u||'')+' '+(c.n||'')))reCode=r.code}
  const rank=c=>{const i=c?TBX_ORDER.indexOf(c.st):-1;return i<0?TBX_ORDER.length:i};
  const data=rows.map(r=>{const c=clsOf(r.code),ok=!!c&&!!S[c.st],adj=r2(TBSTORE.adj(r.code)),cb=r2(r.cb),line=tbMapOf(r.code);
-  return{r,c:ok?c:null,cb,adj,adjd:r2(cb+adj),py:py(r),line:line&&AC[line]?AC[line].n:'',st:ok?auto[r.code]==='M'?'مبوَّب آليًا (راجعه)':'مبوَّب':'غير مبوَّب'}});
+  let ob=r2(r.ob),dr=r2(r.mvDr),cr=r2(r.mvCr);
+  if(mode==='derived'){ob=ok&&(c.st==='SFP'||c.st==='EQ')?py(r):0;if(r.code===reCode)ob=r2(ob+pyPL);const mv=r2(cb-ob);dr=mv>0?mv:0;cr=mv<0?-mv:0}
+  return{r,c:ok?c:null,cb,adj,ob,dr,cr,adjd:r2(cb+adj),py:py(r),line:line&&AC[line]?AC[line].n:'',st:ok?auto[r.code]==='M'?'مبوَّب آليًا (راجعه)':'مبوَّب':'غير مبوَّب'}});
  data.sort((a,b)=>rank(a.c)-rank(b.c)||String(a.r.code).localeCompare(String(b.r.code),'en',{numeric:true}));
- const main=[['كود الحساب','اسم الحساب','Account name (EN)','أول المدة','حركة مدين','حركة دائن','الرصيد قبل التسويات','التسويات','الرصيد بعد التسويات','رصيد السنة السابقة','القائمة','المجموعة','المجموعة الفرعية','بند الربط','حالة التبويب']];
- for(const d of data){const r=d.r,c=d.c;main.push([r.code,r.name||'',r.nameEn||'',r2(r.ob),r2(r.mvDr),r2(r.mvCr),d.cb,d.adj,d.adjd,d.py,c?S[c.st]:'',c?c.g||'':'',c?c.u||'':'',d.line,d.st])}
+ const main=[['كود الحساب','اسم الحساب','Account name (EN)','أول المدة','حركة مدين','حركة دائن','الرصيد قبل التسويات','التسويات','الرصيد بعد التسويات','رصيد السنة السابقة','نوع القائمة','بند القائمة','التصنيف الفرعي','اسم الإيضاح','بند الربط','حالة التبويب']];
+ for(const d of data){const r=d.r,c=d.c;main.push([r.code,r.name||'',r.nameEn||'',d.ob,d.dr,d.cr,d.cb,d.adj,d.adjd,d.py,c?S[c.st]:'',c?c.g||'':'',c?c.u||'':'',c?c.n||'':'',d.line,d.st])}
  /* summary per statement › group › sub-group */
- const grp=new Map();for(const d of data){const k=(d.c?d.c.st:'~')+'|'+(d.c?d.c.g||'':'')+'|'+(d.c?d.c.u||'':'');let g=grp.get(k);if(!g){g={st:d.c?S[d.c.st]:'غير مبوَّب',o:rank(d.c),g:d.c?d.c.g||'':'',u:d.c?d.c.u||'':'',n:0,cb:0,adjd:0,py:0};grp.set(k,g)}g.n++;g.cb+=d.cb;g.adjd+=d.adjd;g.py+=d.py}
+ const grp=new Map();for(const d of data){const k=(d.c?d.c.st:'~')+'|'+(d.c?d.c.g||'':'')+'|'+(d.c?d.c.u||'':'');let g=grp.get(k);if(!g){g={st:d.c?S[d.c.st]:'غير مبوَّب',o:rank(d.c),g:d.c?d.c.g||'':'',u:d.c?d.c.u||'':'',n:0,ob:0,cb:0,adjd:0,py:0};grp.set(k,g)}g.n++;g.ob+=d.ob;g.cb+=d.cb;g.adjd+=d.adjd;g.py+=d.py}
  const gl=[...grp.values()].sort((a,b)=>a.o-b.o||a.g.localeCompare(b.g,'ar')||a.u.localeCompare(b.u,'ar'));
- const sum=[['القائمة','المجموعة','المجموعة الفرعية','عدد الحسابات','قبل التسويات','بعد التسويات','السنة السابقة']];
- let cur=null,t=null;const flush=()=>{if(t)sum.push([t.st,'الإجمالي','',t.n,r2(t.cb),r2(t.adjd),r2(t.py)])};
- for(const g of gl){if(cur!==g.st){flush();cur=g.st;t={st:g.st,n:0,cb:0,adjd:0,py:0}}t.n+=g.n;t.cb+=g.cb;t.adjd+=g.adjd;t.py+=g.py;sum.push([g.st,g.g,g.u,g.n,r2(g.cb),r2(g.adjd),r2(g.py)])}flush();
+ const sum=[['القائمة','المجموعة','المجموعة الفرعية','عدد الحسابات','أول المدة','قبل التسويات','بعد التسويات','السنة السابقة']];
+ let cur=null,t=null;const flush=()=>{if(t)sum.push([t.st,'الإجمالي','',t.n,r2(t.ob),r2(t.cb),r2(t.adjd),r2(t.py)])};
+ for(const g of gl){if(cur!==g.st){flush();cur=g.st;t={st:g.st,n:0,ob:0,cb:0,adjd:0,py:0}}t.n+=g.n;t.ob+=g.ob;t.cb+=g.cb;t.adjd+=g.adjd;t.py+=g.py;sum.push([g.st,g.g,g.u,g.n,r2(g.ob),r2(g.cb),r2(g.adjd),r2(g.py)])}flush();
  /* checks */
  const tot=k=>r2(data.reduce((s,d)=>s+d[k],0)),un=data.filter(d=>!d.c),unB=r2(un.reduce((s,d)=>s+Math.abs(d.cb),0));
  const chk=[['البند','القيمة'],['الشركة',CUR.company.name],['السنة',G('eng.year','')],['المصدر',TBSTORE.stamp()],['عدد الحسابات',data.length],
-  ['مجموع الأرصدة قبل التسويات (يجب = 0)',tot('cb')],['مجموع التسويات (يجب = 0)',tot('adj')],['مجموع الأرصدة بعد التسويات (يجب = 0)',tot('adjd')],['مجموع السنة السابقة (يجب = 0)',tot('py')],
+  ['مصدر أول المدة',{file:'من ملف الميزان',derived:'مشتقة من أرصدة نهاية السنة السابقة (مع ترحيل نتيجة السنة السابقة إلى الأرباح المرحلة)',none:'غير متوفرة (لا أول مدة ولا سنة سابقة في الملف)'}[mode]],['مجموع أول المدة (يجب = 0)',tot('ob')],['مجموع الأرصدة قبل التسويات (يجب = 0)',tot('cb')],['مجموع التسويات (يجب = 0)',tot('adj')],['مجموع الأرصدة بعد التسويات (يجب = 0)',tot('adjd')],['مجموع السنة السابقة (يجب = 0)',tot('py')],
   ['الميزان متوازن',Math.abs(tot('adjd'))<0.01&&Math.abs(tot('cb'))<0.01?'نعم':'لا'],
   ['حسابات مبوَّبة',data.length-un.length],['حسابات مبوَّبة آليًا بثقة متوسطة (راجعها)',data.filter(d=>d.st.startsWith('مبوَّب آليًا')).length],
   ['حسابات غير مبوَّبة',un.length],['مجموع أرصدة غير المبوَّب (مطلق)',unB],['أُصدر في',localISO()+' بواسطة '+SESSION.display],['إشارة الأرصدة','مدين (+) / دائن (−)'],['ملاحظة','إجمالي «مركز مالي» = − إجمالي «دخل» = ربح (خسارة) العام قبل ترحيله إلى حقوق الملكية.']];
- return[{name:'الميزان المبوّب',rows:main,widths:[14,38,28,16,16,16,18,16,18,18,14,24,28,32,20]},{name:'ملخص التبويب',rows:sum,widths:[16,30,34,12,18,18,18]},{name:'فحوصات',rows:chk,widths:[48,40],header:true}]}
+ return[{name:'الميزان المبوّب',rows:main,widths:[14,38,28,16,16,16,18,16,18,18,14,24,28,26,32,20]},{name:'ملخص التبويب',rows:sum,widths:[16,30,34,12,18,18,18,18]},{name:'فحوصات',rows:chk,widths:[48,40],header:true}]}
 /* English version of the workbook when the interface language is English (account codes/names and the company name are user data and are never translated) */
 const TBX_EN={'الميزان المبوّب':'Classified TB','ملخص التبويب':'Classification summary','فحوصات':'Checks',
- 'كود الحساب':'Account code','اسم الحساب':'Account name','Account name (EN)':'Account name (EN)','أول المدة':'Opening balance','حركة مدين':'Debit movement','حركة دائن':'Credit movement','الرصيد قبل التسويات':'Balance before adjustments','التسويات':'Adjustments','الرصيد بعد التسويات':'Balance after adjustments','رصيد السنة السابقة':'Prior-year balance','القائمة':'Statement','المجموعة':'Group','المجموعة الفرعية':'Sub-group','بند الربط':'Mapped FS line','حالة التبويب':'Classification status',
+ 'كود الحساب':'Account code','اسم الحساب':'Account name','Account name (EN)':'Account name (EN)','أول المدة':'Opening balance','حركة مدين':'Debit movement','حركة دائن':'Credit movement','الرصيد قبل التسويات':'Balance before adjustments','التسويات':'Adjustments','الرصيد بعد التسويات':'Balance after adjustments','رصيد السنة السابقة':'Prior-year balance','القائمة':'Statement','نوع القائمة':'Statement type','بند القائمة':'Statement caption','التصنيف الفرعي':'Sub-classification','اسم الإيضاح':'Note name','مصدر أول المدة':'Opening balance source','من ملف الميزان':'From the TB file','مشتقة من أرصدة نهاية السنة السابقة (مع ترحيل نتيجة السنة السابقة إلى الأرباح المرحلة)':'Derived from prior-year closing balances (prior-year result carried to retained earnings)','غير متوفرة (لا أول مدة ولا سنة سابقة في الملف)':'Not available (the file has neither opening nor prior-year balances)','مجموع أول المدة (يجب = 0)':'Sum of opening balances (must be 0)','المجموعة':'Group','المجموعة الفرعية':'Sub-group','بند الربط':'Mapped FS line','حالة التبويب':'Classification status',
  'مركز مالي':'Financial position','دخل':'Income','دخل شامل':'Other comprehensive income','حقوق ملكية':'Equity','مبوَّب':'Classified','مبوَّب آليًا (راجعه)':'Auto-classified (review)','غير مبوَّب':'Unclassified','الإجمالي':'Total',
  'عدد الحسابات':'No. of accounts','قبل التسويات':'Before adjustments','بعد التسويات':'After adjustments','السنة السابقة':'Prior year',
  'البند':'Item','القيمة':'Value','الشركة':'Company','السنة':'Year','المصدر':'Source','نعم':'Yes','لا':'No',
@@ -12031,17 +12037,21 @@ function tbxEnglish(sheets){const T=s=>typeof s==='string'?(TBX_EN[s]!==undefine
   if(si===2&&ri>0&&ci===1&&['الشركة','السنة'].includes(sh.rows[ri][0]))return v;   /* company name / year */
   if(si===2&&ri>0&&ci===1&&sh.rows[ri][0]==='أُصدر في')return v.replace(by,' by ');
   return T(v)}))}))}
+/* the original re-import template (always Arabic: the import expects Arabic statement / group names) + the list of valid classifications */
+function tbClsExtraSheets(en){const ex=[];
+ if(en){const rows=TBSTORE.rows.map(r=>{const c=clsOf(r.code)||{st:'',g:'',u:'',n:''};return[r.code,r.name||r.nameEn,r.cb,c.st?CLS_ST_NAME[c.st]:'',c.g,c.u,c.n]});
+  ex.push({name:'التبويب',rows:[['كود الحساب','اسم الحساب','الرصيد الختامي','نوع القائمة','بند القائمة','التصنيف الفرعي','اسم الإيضاح']].concat(rows),widths:[14,40,16,16,26,26,26]})}
+ ex.push({name:'قائمة التصنيفات',rows:[['نوع القائمة','بند القائمة','التصنيف الفرعي','اسم الإيضاح']].concat(CLS_TAX.map(x=>[CLS_ST_NAME[x.st],x.g,x.u,x.n])),widths:[16,30,30,30]});return ex}
+/* ONE export for the classification tab: classified TB (opening / movement / closing / adjusted / prior year + classification) + summary + checks + the valid-classification list.
+   The first sheet keeps the import column names, so after editing the classification in Excel it can be loaded back with «⤒ استيراد التبويب من Excel». */
 function tbClsXlsxExport(){if(!TBSTORE.ready()){toast('لا يوجد ميزان معتمد للتصدير.','e');return}
- try{const nm=sanitizeName('Classified TB - '+CUR.company.name+' '+G('eng.year',''),90);let sh=tbClsSheets();if(XT.on())sh=tbxEnglish(sh);
+ try{const nm=sanitizeName('Classified TB - '+CUR.company.name+' '+G('eng.year',''),90);const en=XT.on();let sh=tbClsSheets();if(en)sh=tbxEnglish(sh);sh=sh.concat(tbClsExtraSheets(en));
   downloadBlob(xlsxBlob(sh,{title:nm,author:SESSION.display}),nm+'.xlsx');
-  audit('export.tb.classified',{fmt:'xlsx',rows:TBSTORE.rows.length,v:TBSTORE.ver});toast(`تم تصدير الميزان المبوَّب (${TBSTORE.rows.length.toLocaleString('en-US')} حساب) إلى Excel.`,'s')}
+  audit('tb.cls.export',{fmt:'xlsx',rows:TBSTORE.rows.length,v:TBSTORE.ver});toast(`تم تصدير الميزان المبوَّب (${TBSTORE.rows.length.toLocaleString('en-US')} حساب) إلى Excel.`,'s')}
  catch(e){logErr('tbClsXlsx',e);toast('تعذر التصدير: '+errMsg(e),'e')}}
-document.addEventListener('click',e=>{const b=e.target instanceof Element&&e.target.closest('[data-fsx]');if(!b)return;e.preventDefault();tbClsXlsxExport()});
-const TBX_BTN=`<button class="btn sm" type="button" data-fsx="tb">⤓ تصدير الميزان المبوَّب (Excel)</button>`;
-/* button on every TB tab that is about the classified data + inside the statements summary + the statement prep bar */
-(function(){const o=tbHead;tbHead=function(a){const h=o.apply(this,arguments);return(TBSTORE.ready()&&['','cls','map','fs','link'].includes(a||''))?h+`<div class="row noprint" style="margin:6px 0">${TBX_BTN}</div>`:h}})();
-(function(){const o=fsPrepBar;fsPrepBar=function(){const h=o.apply(this,arguments);return h?h.replace(/<\/div>$/,TBX_BTN+'</div>'):h}})();
-Object.assign(I18N_EN,{"تصدير الميزان المبوَّب (Excel)":"Export classified TB (Excel)","الميزان المبوّب":"Classified TB","ملخص التبويب":"Classification summary"});
+/* the classification tab's own button («نموذج / تصدير التبويب») now runs this single export */
+clsExport=tbClsXlsxExport;
+Object.assign(I18N_EN,{"تصدير الميزان المبوَّب / نموذج التبويب":"Export classified TB / classification template","الميزان المبوّب":"Classified TB","ملخص التبويب":"Classification summary"});
 ;
 /* Audit-Plus · v11 · Worksheet templates — a purpose-built working template for every audit area (instead of one generic layout).
    Each family of areas gets its own input grids (with live formulas), automatic tie-out to the trial balance (natural sign, after adjustments),
