@@ -156,7 +156,7 @@ function clsCounts(){let c=0;for(const r of TBSTORE.rows)if(clsOf(r.code))c++;re
 function clsHTML(){clsLoadCompany();const tot=TBSTORE.rows.length,done=clsCounts(),pct=tot?Math.round(done*100/tot):0;const un=TBSTORE.rows.filter(r=>!clsOf(r.code));const unB=un.reduce((s,r)=>s+Math.abs(r.cb),0);const ed=can('edit');
  return `<div class="card"><p>تم تبويب <b>${done.toLocaleString('en-US')}</b> من <b>${tot.toLocaleString('en-US')}</b> حساب (${pct}%) ${un.length?`· غير مبوّب: ${un.length.toLocaleString('en-US')} حساب بإجمالي أرصدة مطلقة ${fmtA(unB)}`:'<span class="b ok">اكتمل التبويب</span>'}</p>${bar(pct)}
  <p class="mut small">التبويب أربعة مستويات: نوع القائمة (مركز مالي / دخل / دخل شامل / حقوق ملكية) ← بند القائمة (مثال: موجودات متداولة) ← التصنيف الفرعي (مثال: مخزون) ← اسم الإيضاح التفصيلي (مثال: مواد خام). كل ما يُبوَّب هنا يغذّي القوائم المالية وأوراق العمل والتحليلات تلقائيًا.</p>
- <div class="row">${ed?`<button class="btn sm" type="button" data-w4act="clsacc" data-conf="H">قبول الاقتراحات عالية الثقة (<span id="clshi">…</span>)</button><button class="btn g sm" type="button" data-w4act="clsacc" data-conf="M">قبول عالية + متوسطة (<span id="clshm">…</span>)</button><button class="btn o sm" type="button" data-w4act="clsimp">⤒ استيراد التبويب من Excel</button>`:''}<button class="btn g sm" type="button" data-w4act="clstpl">⤓ تصدير الميزان المبوَّب / نموذج التبويب</button></div><span class="small mut" id="clsprog" aria-live="polite"></span></div>
+ ${ed?`<div class="row"><button class="btn sm" type="button" data-w4act="clsacc" data-conf="H">قبول الاقتراحات عالية الثقة (<span id="clshi">…</span>)</button><button class="btn g sm" type="button" data-w4act="clsacc" data-conf="M">قبول عالية + متوسطة (<span id="clshm">…</span>)</button><button class="btn o sm" type="button" data-w4act="clsimp">⤒ استيراد التبويب من Excel</button><button class="btn g sm" type="button" data-w4act="clsexp" title="ملف Excel واحد: الميزان بتبويبه الحالي وأرصدته (نفسه نموذج الاستيراد) + ورقة قائمة التصنيفات المعتمدة">⤓ تصدير الميزان المبوَّب (Excel)</button></div>`:''}<span class="small mut" id="clsprog" aria-live="polite"></span></div>
  <div data-block="clsimp">${cimpHTML()}</div>
  <div class="card noprint tbf"><div class="fgrid"><label>بحث<input class="in" type="search" data-w4="clsq" value="${esc(CLSQ.q)}" placeholder="كود أو اسم" autocomplete="off"></label>
  <label>عرض<select class="sel" data-w4="clsf">${[['unc','غير المبوّب'],['all','كل الحسابات'],['done','المبوّب فقط']].map(o=>`<option value="${o[0]}"${CLSQ.f===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select></label>
@@ -195,12 +195,12 @@ document.addEventListener('click',async e=>{const b=e.target instanceof Element&
  if(a==='clsacc'){await clsAccept(b.dataset.conf);return}
  if(a==='clsone'){const s=CSUG.one(b.dataset.code);if(s){CUR.eng.set('tbc.'+tbk(b.dataset.code),[s.st,s.g,s.u,s.n],{label:'قبول اقتراح تبويب '+b.dataset.code});CLSV++;TBMV++;clsSaveCompanyD();TBSTORE.notify();if(CLSQ.f==='unc')clsMount();else VT.inst&&VT.draw(true);clsCountS()}return}
  if(a==='clsimp'){cimpStart();return}
- if(a==='clstpl'){clsExport();return}
+ if(a==='clsexp'){clsExport();return}
  if(a==='cimpapply'){await cimpApply();return}if(a==='cimpcancel'){Object.assign(CIMP,{step:0,raw:null,buf:null,file:null});cimpRender();return}});
-function clsExport(){const rows=TBSTORE.rows.map(r=>{const c=clsOf(r.code)||{st:'',g:'',u:'',n:''};return[r.code,r.name||r.nameEn,r.cb,c.st?CLS_ST_NAME[c.st]:'',c.g,c.u,c.n]});
- const head=['كود الحساب','اسم الحساب','الرصيد الختامي','نوع القائمة','بند القائمة','التصنيف الفرعي','اسم الإيضاح'];
+function clsExport(){const rows=TBSTORE.rows.map(r=>{const c=clsOf(r.code)||{st:'',g:'',u:'',n:''};const aj=TBSTORE.adj(r.code),py=TBSTORE.pyMap?(TBSTORE.pyMap.get(r.code)||0):'';return[r.code,r.name||r.nameEn,r.cb,c.st?CLS_ST_NAME[c.st]:'',c.g,c.u,c.n,aj||0,r.cb+(aj||0),py]});
+ const head=['كود الحساب','اسم الحساب','الرصيد الختامي','نوع القائمة','بند القائمة','التصنيف الفرعي','اسم الإيضاح','التسويات','الرصيد بعد التسويات','السنة السابقة'];
  const ref=[['نوع القائمة','بند القائمة','التصنيف الفرعي','اسم الإيضاح']].concat(CLS_TAX.map(x=>[CLS_ST_NAME[x.st],x.g,x.u,x.n]));
- const nm=sanitizeName('تبويب الميزان - '+CUR.company.name+' '+G('eng.year',''),80);downloadBlob(xlsxBlob([{name:'التبويب',rows:[head].concat(rows),widths:[14,40,16,16,26,26,26]},{name:'قائمة التصنيفات',rows:ref,widths:[16,30,30,30]}],{title:nm,author:SESSION.display}),nm+'.xlsx');audit('tb.cls.export',{rows:rows.length})}
+ const nm=sanitizeName('الميزان المبوَّب - '+CUR.company.name+' '+G('eng.year',''),80);downloadBlob(xlsxBlob([{name:'التبويب',rows:[head].concat(rows),widths:[14,40,16,16,26,26,26,14,16,16]},{name:'قائمة التصنيفات',rows:ref,widths:[16,30,30,30]}],{title:nm,author:SESSION.display}),nm+'.xlsx');audit('tb.cls.export',{rows:rows.length})}
 
 /* ---------- import classification from Excel/CSV into the active TB ---------- */
 const CIMP={step:0,file:null,buf:null,raw:null,hr:0,map:{},sheet:0,sheets:[],res:null,busy:false,msg:''};

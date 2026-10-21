@@ -18,12 +18,12 @@ function areaOfRow(r,lineAreas,ov){const o=ov.get(r.code);if(o&&CT.areaBy[o])ret
  if(c&&c.g){const f=cs.filter(a=>!a.gf||a.gf===c.g||a.id==='ITB');if(f.length)cs=f}
  if(line==='nonop')return (r.cb<0?cs.find(a=>a.id==='OIN'):cs.find(a=>a.id==='OEX'))||cs[0];
  return cs.find(a=>!AREA_SUB[a.id])||cs[0]}
-function areaMap(){const k=TBSTORE.ver+':'+CLSV+':'+TBMV+':'+(CUR.eng&&CUR.eng.path)+':'+areaOverrideKey();if(AMAP.key===k)return AMAP;
+function areaMap(){const k=TBSTORE.ver+':'+CLSV+':'+TBMV+':'+(TBSTORE.pyFrom||'-')+':'+TBSTORE.pyStamp+':'+(CUR.eng&&CUR.eng.path)+':'+areaOverrideKey();if(AMAP.key===k)return AMAP;
  const la={};for(const a of CT.areas)for(const l of a.lines)(la[l]=la[l]||[]).push(a);
  const ov=new Map();if(CUR.eng)for(const [kk,v] of CUR.eng.entries('tba.')){ov.set(decodeURIComponent(kk.slice(4)),v)}
  const data=new Map(CT.areas.map(a=>[a.id,{rows:[],cy:0,cyu:0,py:null,bud:null,ob:null,obSrc:''}]));const realOb=typeof tbiHasOb==='function'&&tbiHasOb();const un=[];const m=new Map();
  if(TBSTORE.ready()){const adj=tbAdjMap(CUR.eng);const pm=TBSTORE.pyMap;
-  for(const r of TBSTORE.rows){const a=areaOfRow(r,la,ov);if(!a){un.push(r);continue}m.set(r.code,a.id);const d=data.get(a.id);const ad=adj.get(r.code)||0;const isPL=a.sup==='PL'||a.id==='REV'||a.id==='OIN'||a.id==='OEX';const ob=realOb?r.ob:(pm&&!isPL?(pm.get(r.code)||0):null);const x={r,cyu:r.cb,adj:ad,cy:r.cb+ad,py:pm?(pm.get(r.code)||0):null,bud:r.bud==null?null:r.bud,ob};
+  for(const r of TBSTORE.rows){const a=areaOfRow(r,la,ov);if(!a){un.push(r);continue}m.set(r.code,a.id);const d=data.get(a.id);const ad=adj.get(r.code)||0;const isPL=a.sup==='PL'||a.id==='REV'||a.id==='OIN'||a.id==='OEX';const ob=realOb?r.ob:(pm&&!isPL?(pm.get(r.code)||0):null);const x={r,cyu:r.cb,adj:ad,cy:r.cb+ad,py:pm&&!(TBSTORE.pyPartial&&isPL)?(pm.get(r.code)||0):null,bud:r.bud==null?null:r.bud,ob};
    d.rows.push(x);d.cyu+=x.cyu;d.cy+=x.cy;if(x.py!=null)d.py=(d.py||0)+x.py;if(x.bud!=null)d.bud=(d.bud||0)+x.bud;if(x.ob!=null){d.ob=(d.ob||0)+x.ob;d.obSrc=realOb?'tb':'py'}}}
  AMAP={key:k,m,data,un,lineAreas:la};return AMAP}
 function areaData(id){return areaMap().data.get(id)||{rows:[],cy:0,cyu:0,py:null,bud:null,ob:null,obSrc:''}}

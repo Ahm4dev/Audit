@@ -121,3 +121,43 @@ BLOCKS.tbu=()=>tbUploadHTML();
 document.addEventListener('change',e=>{const el=e.target;if(!(el instanceof Element)||!el.dataset||el.dataset.tbi!=='sign')return;UPL.sign.mode=el.value;UPL.sign.auto=false;refreshBlock('tbu')});
 document.addEventListener('click',e=>{const b=e.target instanceof Element&&e.target.closest('[data-tbi-act]');if(!b)return;e.preventDefault();const a=b.dataset.tbiAct;if(a==='tpl-xlsx')tbiTemplate('xlsx');else if(a==='tpl-csv')tbiTemplate('csv');
  else if(a==='flipacc'||a==='unflip'){const c=b.dataset.code;const f=new Set(UPL.sign.flip||[]);if(a==='flipacc')f.add(c);else f.delete(c);UPL.sign.flip=[...f];UPL.sign.auto=false;refreshBlock('tbu')}});
+
+/* ---------- prior-year / year-before-prior trial balance uploads (stored with the engagement: tb/prior/y1.json, y2.json) ---------- */
+const TBPY_LBL={1:'السنة السابقة',2:'ما قبل السابقة'};
+function tbpySrcText(k){if(k===1){const f=TBSTORE.pyFrom;return !f?'غير متوفرة':f==='column'?'من عمود «السنة السابقة» في الميزان الحالي':f==='ob'?'من أرصدة أول المدة (المركز المالي فقط)':'من ارتباط '+f}
+ return !TBSTORE.py2Map?'غير متوفرة':TBSTORE.py2From==='eng'?'من ارتباط السنتين السابقتين':'مرفوعة'}
+function tbpyCard(){if(!CUR.eng)return '';const y=parseInt(G('eng.year',''),10)||0,ed=can('edit');
+ const row=k=>{const u=TBSTORE.pyUp[k];const yr=y?' ('+(y-k)+')':'';
+  return `<tr><td><b>${TBPY_LBL[k]}${yr}</b></td><td>${u?`<span class="b ok">✓ مرفوع</span> <span dir="ltr">${esc(u.file)}</span> · ${u.n.toLocaleString('en-US')} حساب · ${esc(String(u.at).slice(0,10))}`:`<span class="mut">${esc(tbpySrcText(k))}</span>`}</td><td class="noprint">${ed?`<button class="btn o sm" type="button" data-tbpy="up" data-slot="${k}">⤒ ${u?'استبدال':'رفع ميزان'} ${TBPY_LBL[k]}</button>${u?` <button class="btn g sm" type="button" data-tbpy="del" data-slot="${k}">حذف</button>`:''}`:''}</td></tr>`};
+ return `<div class="card tbi-py"><h3>أرصدة السنوات المقارنة</h3><p class="mut small">ارفع ميزان السنة السابقة وما قبلها ليُستخدما في المقارنة بالقوائم المالية (المركز المالي والدخل والدخل الشامل والتدفقات) وأوراق عمل المجالات والتحليلات. الأولوية: الميزان المرفوع هنا ← عمود «السنة السابقة» في الميزان الحالي ← ارتباط السنة السابقة ← أرصدة أول المدة. السنة الحالية (${y||''}) تُرفع من الأعلى.</p>
+ <div class="tw"><table><thead><tr><th>السنة</th><th>المصدر الحالي</th><th></th></tr></thead><tbody><tr><td><b>السنة الحالية${y?' ('+y+')':''}</b></td><td>${TBSTORE.ready()?`<span class="b ok">✓ الميزان النشط v${TBSTORE.ver}</span>`:'<span class="mut">لم يُرفع بعد</span>'}</td><td class="noprint mut small">من منطقة الرفع أعلاه</td></tr>${row(1)}${row(2)}</tbody></table></div></div>`}
+(function(){const o=tbiUp;tbiUp=function(){return o()+tbpyCard()}})();
+async function tbpyApply(k,file){
+ const ext=(file.name.split('.').pop()||'').toLowerCase();if(!['csv','tsv','txt','xlsx','xlsm'].includes(ext)){toast('صيغة غير مدعومة. استخدم CSV أو TSV أو XLSX.','w');return}
+ const sv=UPL.sign;let accts=[],note='';
+ try{toast('جارٍ قراءة '+TBPY_LBL[k]+'…','i');const buf=await file.arrayBuffer();let sheet=0;
+  if(ext.startsWith('xls')){const l=await TBW.call('parse',{buf:buf.slice(0),listOnly:true});const g=(l.sheets||[]).findIndex(n=>/ميزان|مراجعه|trial|\btb\b|balance/i.test(normAr(n)));if(g>-1)sheet=g}
+  const r=await TBW.call('parse',{buf:buf.slice(0),sheet});const raw=r.rows;const hr=detectHeaderRow(raw);const heads=(raw[hr]||[]).map(x=>String(x==null?'':x));
+  const map=detectMapping(heads,raw.slice(hr+1,hr+40));
+  const hasBal=map.cb!=null||map.cbDr!=null||map.cbCr!=null||(map.ob!=null&&(map.mvDr!=null||map.mvCr!=null));
+  if(map.code==null||!hasBal){toast('لم أتعرف على عمود كود الحساب أو الرصيد الختامي. استخدم القالب (⤓ قالب Excel) أو سمِّ الأعمدة: كود الحساب، رصيد آخر المدة.','w',9000);return}
+  UPL.sign={mode:'asis',auto:true,diag:null,key:'',flip:[]};
+  const res=await buildAccountsA(raw,hr,map,()=>{});UPL.sign=sv;
+  const mg=new Map();for(const a of res.accounts){if(!a.code)continue;const m=mg.get(a.code);if(m)m.cb+=a.cb;else mg.set(a.code,{code:a.code,name:a.name||a.nameEn||'',nameEn:a.nameEn,ob:a.ob,mvDr:a.mvDr,mvCr:a.mvCr,cb:a.cb,py:null,bud:null})}
+  accts=[...mg.values()];if(!accts.length){toast('لا توجد حسابات صالحة في الملف.','w');return}
+  /* sign convention: by account nature, then aligned with the current TB */
+  const dg=tbiDiag(accts);if(dg.rec!=='asis'){tbApplySign(accts,map,{mode:dg.rec,flip:[]});note+='ضُبطت إشارات الأرصدة تلقائيًا ('+(dg.rec==='flip'?'عكس الاتجاه':'حسب طبيعة الحساب')+'). '}
+  if(TBSTORE.ready()){let same=0,opp=0;for(const a of accts){const c=TBSTORE.by.get(a.code);if(!c||Math.abs(a.cb)<.005||Math.abs(c.cb)<.005)continue;if((a.cb>0)===(c.cb>0))same++;else opp++}
+   if(opp>same*2&&opp>=5){for(const a of accts)a.cb=-a.cb;note+='الإشارات كانت معاكسة للميزان الحالي فعُكست. '}}
+  const net=r2(accts.reduce((t,a)=>t+a.cb,0));const cur=TBSTORE.ready()?accts.filter(a=>TBSTORE.by.has(a.code)).length:0;
+  const ok=await ask({title:'اعتماد '+TBPY_LBL[k],body:`<p><b dir="ltr">${esc(file.name)}</b></p><ul class="l"><li>${accts.length.toLocaleString('en-US')} حساب · صافي الأرصدة <b dir="ltr">${fmtN(net)}</b> ${Math.abs(net)<=1?'(متوازن)':'<span class="b bad">غير متوازن</span>'}</li><li>${cur.toLocaleString('en-US')} من ${TBSTORE.rows.length.toLocaleString('en-US')} حساب بالميزان الحالي لها مقابل في هذا الملف${cur<TBSTORE.rows.length*0.5?' <span class="b bad">تطابق ضعيف — تأكد من اتفاق ترميز الحسابات بين السنتين</span>':''}</li></ul>${note?`<p class="mut small">${esc(note)}</p>`:''}<p>سيحل هذا الميزان محل أي ${TBPY_LBL[k]} سابقة، ويُستخدم في القوائم وأوراق العمل فورًا.</p>`,ok:'اعتماد'});
+  if(!ok)return;
+  const y=parseInt(G('eng.year',''),10)||0;
+  await withRetry(()=>STORE.writeText(CUR.eng.path+'/tb/prior/y'+k+'.json',JSON.stringify({format:'MEAP-tb-prior',version:1,slot:k,year:y?y-k:'',file:file.name,createdAt:localISO(),by:SESSION&&SESSION.id,net,rows:accts.map(a=>[a.code,a.name,r2(a.cb)])})));
+  audit('tb.prior.upload',{slot:k,rows:accts.length,file:file.name});await tbpyReload();toast('تم اعتماد '+TBPY_LBL[k]+' ('+accts.length.toLocaleString('en-US')+' حساب).','s')}
+ catch(e){logErr('tb prior upload',e);toast('تعذر رفع '+TBPY_LBL[k]+': '+errMsg(e),'e',9000)}finally{UPL.sign=sv}}
+async function tbpyReload(){await TBSTORE.loadPrior(CUR.eng);TBSTORE.notify();refreshBlock('tbu');if(typeof UI!=='undefined'&&UI.refreshView)UI.refreshView()}
+document.addEventListener('click',async e=>{const b=e.target instanceof Element&&e.target.closest('[data-tbpy]');if(!b||!can('edit'))return;e.preventDefault();const k=+b.dataset.slot,a=b.dataset.tbpy;
+ if(a==='up'){const i=document.createElement('input');i.type='file';i.accept='.csv,.tsv,.txt,.xlsx,.xlsm';i.onchange=()=>{if(i.files[0])tbpyApply(k,i.files[0])};i.click()}
+ else if(a==='del'){if(!(await ask({title:'حذف '+TBPY_LBL[k],body:'<p>سيُحذف الميزان المرفوع وتعود المقارنة إلى المصادر الأخرى المتاحة.</p>',ok:'حذف',danger:true})))return;
+  try{await withRetry(()=>STORE.writeText(CUR.eng.path+'/tb/prior/y'+k+'.json','{}'));audit('tb.prior.delete',{slot:k});await tbpyReload()}catch(er){toast('تعذر الحذف: '+errMsg(er),'e')}}});

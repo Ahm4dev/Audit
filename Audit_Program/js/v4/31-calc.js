@@ -71,7 +71,7 @@ const MAT_NAMES={PBT:'الربح قبل الضريبة من العمليات ا�
 const MAT_PMF=[['first','ارتباط لأول مرة / أرصدة افتتاحية غير مراجعة',10],['pmis','تحريفات أو أوجه قصور رقابي جوهرية في سنوات سابقة',10],['fraud','مخاطر احتيال مرتفعة أو تجاوز إدارة ملحوظ',10],['env','بيئة رقابة ضعيفة أو اعتماد كبير على أنظمة غير موثوقة',10],['pie','منشأة ذات مصلحة عامة / مدرجة / جهات رقابية متعددة',5],['gc','شك في الاستمرارية أو ضائقة مالية',10],['est','تقديرات محاسبية معقدة وأحكام جوهرية',5],['rp','معاملات أطراف ذات علاقة جوهرية أو غير اعتيادية',5]];
 function matTBBench(){if(!TBSTORE.ready())return null;const calc=o=>{const T=TBSTORE.lineTotals(o);const g=ids=>ids.reduce((s,i)=>s+(T[i]||0),0);const P=A.filter(a=>a.fs==='P');
   const REV=-g(['rev']),PBT=-g(P.filter(a=>a.id!=='taxx').map(a=>a.id)),TA=g(A.filter(a=>a.fs==='A').map(a=>a.id)),EXP=g(['cos','payx','admx','profx','sellx','depx','eclx','fincost']),EQ=-g(A.filter(a=>a.fs==='E').map(a=>a.id)),GP=REV-g(['cos']);return{PBT,REV,GP,EXP,TA,EQ}};
- const cy=calc({adjusted:true});const py=TBSTORE.pyMap?calc({priorYear:true}):null;return{cy,py}}
+ const cy=calc({adjusted:true});const py=TBSTORE.pyMap&&TBSTORE.pyFrom!=='ob'?calc({priorYear:true}):null;return{cy,py}}
 function matHTML(ref){const M=matState();const B=matTBBench();const ro=RO();const bm=M.bm in MAT_NAMES?M.bm:(M.bm==='OTH'?'OTH':'PBT');const log=G('eng.matlog',[])||[];const flags=G('eng.pmf',{})||{};
   const bandOf=MAT_BANDS[bm]||[0,100,5];const pctWarn=M.mp&&bm!=='OTH'&&(M.mp<bandOf[0]||M.mp>bandOf[1]);const tbv=B&&bm in B.cy?Math.abs(B.cy[bm]):null;const drift=B&&M.bv&&tbv?(tbv-M.bv)/M.bv:null;
   const used=MAT_PMF.reduce((s,f)=>s+(flags[f[0]]?f[2]:0),0);const sugPM=Math.max(50,75-used);

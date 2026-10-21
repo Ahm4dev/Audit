@@ -2,6 +2,8 @@
  Extends the runtime dictionary used by v10/70-i18n-engine.js. Keys are Arabic phrases (numbers written as #). */
 'use strict';
 Object.assign(I18N_EN,{
+"أرصدة السنوات المقارنة":"Comparative-year balances","ما قبل السابقة":"Year before prior","غير متوفرة":"Not available","✓ مرفوع":"✓ Uploaded","⤒ رفع ميزان":"⤒ Upload trial balance","⤒ استبدال":"⤒ Replace","حذف":"Delete","من عمود «السنة السابقة» في الميزان الحالي":"From the “Prior year” column of the current TB","من أرصدة أول المدة (المركز المالي فقط)":"From opening balances (balance sheet only)","من ميزان مرفوع للسنة السابقة":"from an uploaded prior-year TB","السنة الحالية":"Current year","لم يُرفع بعد":"Not uploaded yet","من منطقة الرفع أعلاه":"Upload from the area above","المصدر الحالي":"Current source","اعتماد":"Approve","مرفوعة":"Uploaded","من ارتباط السنتين السابقتين":"From the engagement two years back",
+"أرصدة":"Balances of","السنة السابقة":"Prior year","لقائمة المركز المالي مأخوذة من":"for the statement of financial position are taken from","أرصدة أول المدة":"opening balances","في الميزان (= ختام السنة السابقة). قائمتا الدخل والدخل الشامل تحتاجان عمود «السنة السابقة» في الميزان أو ميزان ارتباط السنة السابقة لإظهار المقارنة.":"in the trial balance (= prior-year closing). The income and comprehensive-income statements need a “Prior year” column in the trial balance, or the prior-year engagement’s trial balance, to show the comparison.","من أرصدة أول المدة (المركز المالي)":"from opening balances (financial position)",
 "رفع الملف":"Upload file",
 "ربط الأعمدة والإشارات":"Map columns & signs",
 "التحقق":"Validate",

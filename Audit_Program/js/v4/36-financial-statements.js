@@ -10,20 +10,21 @@ const FS_ASSET=g=>/موجودات/.test(g);
 const FS_COL=[['cap','رأس المال'],['prem','علاوة وأسهم خزينة'],['res','احتياطيات'],['oci','احتياطي الدخل الشامل'],['re','أرباح مرحلة'],['nci','حقوق غير مسيطرة']];
 const FS_COLOF={cap:'cap',shp:'prem',trs:'prem',res:'res',ocires:'oci',re:'re',nci:'nci'};
 /* build once per data version: nodes[st][g][u] = {cy,cyu,py,bud,rows:[{r,cy,py}],line} — values are in PRESENTATION sign */
-function fsBuild(){return vcache('fsb:'+TBSTORE.ver+':'+CLSV+':'+TBMV,()=>{
- const S={SFP:new Map(),PL:new Map(),OCI:new Map(),EQ:new Map()},un=[];const hasPy=!!TBSTORE.pyMap;
- if(!TBSTORE.ready())return{S,un,hasPy:false,ready:false};
+function fsBuild(){return vcache('fsb:'+TBSTORE.ver+':'+CLSV+':'+TBMV+':'+(TBSTORE.pyFrom||'-')+':'+TBSTORE.pyStamp,()=>{
+ const S={SFP:new Map(),PL:new Map(),OCI:new Map(),EQ:new Map()},un=[];const hasPy=!!TBSTORE.pyMap,part=!!TBSTORE.pyPartial;/* part = PY taken from opening balances → balance sheet only */
+ const pyOk=st=>hasPy&&(!part||st==='SFP');
+ if(!TBSTORE.ready())return{S,un,hasPy:false,pyOk:()=>false,ready:false};
  const adj=tbAdjMap(CUR.eng);const pm=TBSTORE.pyMap;
  for(const r of TBSTORE.rows){const c=clsOf(r.code);if(!c||!S[c.st]){un.push(r);continue}
-  const sg=c.st==='PL'?-1:CLS_SIGN(c.st,c.g);const dr=r.cb+(adj.get(r.code)||0),dru=r.cb,dpy=pm?(pm.get(r.code)||0):null;
+  const sg=c.st==='PL'?-1:CLS_SIGN(c.st,c.g);const dr=r.cb+(adj.get(r.code)||0),dru=r.cb,dpy=pm&&pyOk(c.st)?(pm.get(r.code)||0):null;
   let G_=S[c.st].get(c.g);if(!G_){G_=new Map();S[c.st].set(c.g,G_)}
-  const key=(c.u||c.g);let n=G_.get(key);if(!n){n={u:key,g:c.g,line:c.line||'',cy:0,cyu:0,py:hasPy?0:null,bud:null,rows:[]};G_.set(key,n)}
+  const key=(c.u||c.g);let n=G_.get(key);if(!n){n={u:key,g:c.g,line:c.line||'',cy:0,cyu:0,py:pyOk(c.st)?0:null,bud:null,rows:[]};G_.set(key,n)}
   const cy=dr*sg,cyu=dru*sg,py=dpy==null?null:dpy*sg;n.cy+=cy;n.cyu+=cyu;if(py!=null)n.py+=py;if(r.bud!=null)n.bud=(n.bud||0)+r.bud*sg;n.rows.push({r,cy,cyu,py,dr})}
- return{S,un,hasPy,ready:true}})}
-const fsG=(st,g)=>{const B=fsBuild();const m=B.S[st]&&B.S[st].get(g);let cy=0,cyu=0,py=B.hasPy?0:null,bud=null;if(m)for(const n of m.values()){cy+=n.cy;cyu+=n.cyu;if(py!=null)py+=n.py||0;if(n.bud!=null)bud=(bud||0)+n.bud}return{cy,cyu,py,bud}};
-const fsSt=st=>{const B=fsBuild();let cy=0,cyu=0,py=B.hasPy?0:null;for(const g of B.S[st].keys()){const x=fsG(st,g);cy+=x.cy;cyu+=x.cyu;if(py!=null)py+=x.py||0}return{cy,cyu,py}};
+ return{S,un,hasPy,pyOk,ready:true}})}
+const fsG=(st,g)=>{const B=fsBuild();const m=B.S[st]&&B.S[st].get(g);let cy=0,cyu=0,py=B.pyOk(st)?0:null,bud=null;if(m)for(const n of m.values()){cy+=n.cy;cyu+=n.cyu;if(py!=null)py+=n.py||0;if(n.bud!=null)bud=(bud||0)+n.bud}return{cy,cyu,py,bud}};
+const fsSt=st=>{const B=fsBuild();let cy=0,cyu=0,py=B.pyOk(st)?0:null;for(const g of B.S[st].keys()){const x=fsG(st,g);cy+=x.cy;cyu+=x.cyu;if(py!=null)py+=x.py||0}return{cy,cyu,py}};
 /* net profit (credit-positive): Σ PL groups */
-function fsLines(st,ids){const B=fsBuild();let cy=0,py=B.hasPy?0:null;if(!B.ready)return{cy:0,py:null};for(const m of B.S[st].values())for(const n of m.values())if(ids.includes(n.line)){cy+=n.cy;if(py!=null)py+=n.py||0}return{cy,py}}
+function fsLines(st,ids){const B=fsBuild();let cy=0,py=B.pyOk(st)?0:null;if(!B.ready)return{cy:0,py:null};for(const m of B.S[st].values())for(const n of m.values())if(ids.includes(n.line)){cy+=n.cy;if(py!=null)py+=n.py||0}return{cy,py}}
 /* the owning working paper of an FS line (first live area that lists the line) */
 function fsWpOf(line){if(!line)return null;const la=areaMap().lineAreas||{};const as=(la[line]||[]).filter(a=>!ctOff(a.main));return as.length?as[0]:null}
 const fsAnRef=a=>{const r=a.items.find(x=>CT.items[x].kind==='an');return r||a.main};
@@ -65,7 +66,7 @@ function fsSFP(){const B=fsBuild();if(!B.ready)return fsNoData();let h='';const 
  const df=ta.cy-tel.cy,dfp=ta.py==null?null:ta.py-tel.py;
  h+=`<tr class="${Math.abs(df)<1?'okrow':'bad'}"><td colspan="3">فرق الاتزان (الموجودات − حقوق الملكية والمطلوبات)</td><td class="num" dir="ltr">${fm(df)}</td><td class="num" dir="ltr">${dfp==null?'—':fm(dfp)}</td><td colspan="2">${Math.abs(df)<1?'✔ متزنة':'✖ غير متزنة — راجع التبويب والتسويات'}</td></tr>`;
  return `<div class="tw"><table class="fst">${fsHead()}<tbody>${h}</tbody></table></div>`}
-function fsPL(){const B=fsBuild();if(!B.ready)return fsNoData();let h='';let run={cy:0,py:B.hasPy?0:null};const add=x=>{run.cy+=x.cy;if(run.py!=null)run.py+=x.py||0};
+function fsPL(){const B=fsBuild();if(!B.ready)return fsNoData();let h='';let run={cy:0,py:B.pyOk('PL')?0:null};const add=x=>{run.cy+=x.cy;if(run.py!=null)run.py+=x.py||0};
  const gs=fsOrder('PL');const sub={ 'تكلفة المبيعات':'مجمل الربح (الخسارة)','المصروفات التشغيلية':'ربح (خسارة) التشغيل','إيرادات ومصروفات أخرى':'الربح قبل الضريبة'};
  for(const g of gs){h+=fsGroupRows('PL',g);add(fsG('PL',g));if(sub[g])h+=fsRow(sub[g],{cy:run.cy,py:run.py},{cls:'tot'})}
  h+=fsRow('صافي ربح (خسارة) العام',{cy:run.cy,py:run.py},{cls:'tot big'});
@@ -127,7 +128,8 @@ function fsNotes(){const B=fsBuild();if(!B.ready)return fsNoData();let h='';FSNT
 
 /* ---- statement pages ---- */
 const FS_PAGES=[['sfp','قائمة المركز المالي',fsSFP],['pl','قائمة الدخل',fsPL],['oci','قائمة الدخل الشامل',fsOCI],['soce','قائمة التغير في حقوق الملكية',fsSOCE],['cf','قائمة التدفقات النقدية',fsCF]];
-function fsPageHead(it,ref,sub){const M=matState();return `<div class="areabar"><span>${esc(CUR.company?CUR.company.name:'')}</span><span>تاريخ القوائم: <b>${esc(G('eng.period',G('eng.year','')))}</b></span><span>الأهمية للتمييز: <b dir="ltr">${M.pm?fmtN(M.pm):'—'}</b> (الفروق الأعلى تُظلَّل)</span>${sub||''}</div>${fsUnNote()}`}
+function fsPyNote(){return TBSTORE.ready()&&TBSTORE.pyFrom==='ob'?'<div class="note">أرصدة <b>السنة السابقة</b> لقائمة المركز المالي مأخوذة من <b>أرصدة أول المدة</b> في الميزان (= ختام السنة السابقة). قائمتا الدخل والدخل الشامل تحتاجان عمود «السنة السابقة» في الميزان أو ميزان ارتباط السنة السابقة لإظهار المقارنة.</div>':''}
+function fsPageHead(it,ref,sub){const M=matState();return `<div class="areabar"><span>${esc(CUR.company?CUR.company.name:'')}</span><span>تاريخ القوائم: <b>${esc(G('eng.period',G('eng.year','')))}</b></span><span>الأهمية للتمييز: <b dir="ltr">${M.pm?fmtN(M.pm):'—'}</b> (الفروق الأعلى تُظلَّل)</span>${sub||''}</div>${fsPyNote()}${fsUnNote()}`}
 function fsSingle(fn){return(it,p,ref)=>{FSNT={map:new Map(),n:0};return fsPageHead(it,ref)+fn()}}
 XP.fs_sfp=fsSingle(fsSFP);XP.fs_pl=fsSingle(fsPL);XP.fs_oci=fsSingle(fsOCI);XP.fs_soce=fsSingle(fsSOCE);XP.fs_cf=fsSingle(fsCF);
 XP.fs_notes=(it,p,ref)=>fsPageHead(it,ref)+fsNotes();
