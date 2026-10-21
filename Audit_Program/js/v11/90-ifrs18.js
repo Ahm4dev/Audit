@@ -90,7 +90,7 @@ fsCFData=function(){if(I18S.mode!=='i18')return fsCFData_ias1();
  const dA=ids=>{const x=fsLines('SFP',ids);return x.cy-x.py};const dL=dA;const A=l=>i18Line(l).cy;
  const inOp=l=>{const c=i18Cat(l);return c==='op'||c==='disc'};
  const tax=A('taxx'),dep=-A('depx'),eclx=-A('eclx'),fc=-A('fincost'),fi=A('fininc'),as=A('assoc');
- const adjs=[['إهلاك وإطفاء',dep],['خسائر ائتمانية متوقعة',eclx]];
+ const adjs=[['إهلاك وإطفاء',dep]];/* ECL allowance is already inside the net receivable lines used below — adding the expense back would double count it */
  if(inOp('fincost')&&fc)adjs.push(['تكاليف التمويل (تُعرض في التمويل)',fc]);
  if(inOp('fininc')&&fi)adjs.push(['إيرادات التمويل والاستثمار (تُعرض في الاستثمار)',-fi]);
  if(inOp('assoc')&&as)adjs.push(['حصة في نتائج شركات شقيقة (غير نقدية)',-as]);
@@ -117,7 +117,7 @@ fsCF=function(){const B=fsBuild();if(!B.ready)return fsNoData();if(I18S.mode!=='
  +r('صافي التغير في النقدية وما في حكمها (محسوب)',d.net,'tot big')+r('رصيد النقدية أول العام',d.cashPy)+r('رصيد النقدية آخر العام (من الميزان)',d.cashCy)
  +`<tr class="${Math.abs(d.diff)<=Math.max(1,fsM()*0.05)?'okrow':'bad'}"><td>فروق غير مفسَّرة (التغير الفعلي في النقدية − المحسوب)</td><td class="num" dir="ltr">${fm(d.diff)}</td></tr>`;
  return `<div class="tw"><table class="fst cf"><thead><tr><th>البيان</th><th>السنة الحالية</th></tr></thead><tbody>${h}</tbody></table></div>
- <p class="mut small">مشتقة من حركة الأرصدة المبوَّبة (الطريقة غير المباشرة) وفق IAS 7 المعدَّل بموجب IFRS 18: تبدأ من ربح التشغيل، والفوائد والتوزيعات المقبوضة في الاستثمار، والفوائد المدفوعة والتوزيعات المدفوعة في التمويل. الفرق غير المفسَّر يدل عادة على حركات غير نقدية أو فروق عملة أو أخطاء تبويب؛ قدِّم تفسيره وأرفق الدليل.</p>
+ <p class="mut small">مشتقة من حركة الأرصدة المبوَّبة (الطريقة غير المباشرة) وفق IAS 7 المعدَّل بموجب IFRS 18 (مخصص الخسائر الائتمانية مُدرج ضمن صافي أرصدة المدينين فلا يُضاف مرة ثانية): تبدأ من ربح التشغيل، والفوائد والتوزيعات المقبوضة في الاستثمار، والفوائد المدفوعة والتوزيعات المدفوعة في التمويل. الفرق غير المفسَّر يدل عادة على حركات غير نقدية أو فروق عملة أو أخطاء تبويب؛ قدِّم تفسيره وأرفق الدليل.</p>
  ${edc('wp.D406.diffx',{label:'تفسير الفروق غير المفسَّرة',ph:'اكتب تفسير الفروق والدليل…',ml:1})}`};
 /* ---- wire pages ---- */
 FS_PAGES.forEach(x=>{if(x[0]==='pl')x[2]=()=>fsPL();if(x[0]==='cf')x[2]=()=>fsCF()});

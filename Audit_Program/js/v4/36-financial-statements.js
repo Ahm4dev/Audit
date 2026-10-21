@@ -41,7 +41,8 @@ function fsGroupRows(st,g,o){o=o||{};const B=fsBuild();const m=B.S[st].get(g);if
  for(const n of subs)h+=fsRow(n.u,{cy:n.cy*(o.neg?-1:1),py:n.py==null?null:n.py*(o.neg?-1:1)},{sub:1,ref:fsWpLink(n.line),note:`<a href="#fsn-${fsNoteNo(st,n.u)}">${fsNoteNo(st,n.u)}</a>`});
  h+=fsRow('إجمالي '+g,{cy:gs.cy*(o.neg?-1:1),py:gs.py==null?null:gs.py*(o.neg?-1:1)},{cls:'tot'});return h}
 function fsOrder(st){const B=fsBuild();const ord=CLS_GROUP_ORDER[st]||[];const ex=[...B.S[st].keys()].filter(g=>!ord.includes(g));return ord.filter(g=>B.S[st].has(g)).concat(ex)}
-const fsNoData=()=>TBSTORE.ready()?'':`<div class="note warn">لم يُحمَّل ميزان المراجعة. <a href="${L('tb/upload')}">ارفع الميزان</a> ثم بوّب الحسابات لتُولَّد القوائم تلقائيًا.</div>`;
+function fsNoData(){if(TBSTORE.ready())return'';if(CUR.eng&&(TBSTORE.loading||TBSTORE.stale())){TBSTORE.ensure();return'<div class="note">جارٍ تحميل ميزان المراجعة…</div>'}
+ return `<div class="note warn">لم يُرفع ميزان مراجعة لهذا الارتباط. <a href="${L('tb/upload')}">ارفع الميزان</a> — تُبوَّب الحسابات وتُعدّ القوائم المالية تلقائيًا في أوراق العمل.</div>`}
 function fsUnNote(){const B=fsBuild();if(!B.ready||!B.un.length)return'';const s=B.un.reduce((t,r)=>t+r.cb,0);return `<div class="note warn">⚠ ${B.un.length} حسابًا غير مبوَّب (رصيدها المجمّع <b dir="ltr">${fm(s)}</b>) خارج القوائم — <a href="${L('tb/classify')}">أكمل التبويب</a>.</div>`}
 
 /* ---- statements ---- */
@@ -97,7 +98,7 @@ function fsCFData(){const B=fsBuild();if(!B.ready||!B.hasPy)return null;
  const pl=l=>fsLines('PL',[l]).cy;const plp=l=>fsLines('PL',[l]).py;
  const pr=fsSt('PL'),tax=pl('taxx');const pbt=pr.cy-tax;
  const dep=-pl('depx'),eclx=-pl('eclx'),fc=-pl('fincost'),fi=pl('fininc'),as=pl('assoc');
- const adjs=[['إهلاك وإطفاء',dep],['خسائر ائتمانية متوقعة',eclx],['تكاليف التمويل',fc],['إيرادات التمويل والاستثمار',-fi],['حصة في نتائج شركات شقيقة',-as]];
+ const adjs=[['إهلاك وإطفاء',dep],['تكاليف التمويل',fc],['إيرادات التمويل والاستثمار',-fi],['حصة في نتائج شركات شقيقة',-as]];
  const ws=[['المخزون',-dA(['inv'])],['العملاء وأوراق القبض وأصول العقود',-dA(['tr','nr','ca'])],['أرصدة مدينة ومدفوعات مقدمة وأطراف ذات علاقة (مدينة)',-dA(['rpr','orc','pre'])],['الموردون وأوراق الدفع والمستحقات',dL(['tp','np','accr'])],['أرصدة دائنة أخرى ومستحقات العاملين والتزامات العقود',dL(['opay','emp','cl','rpp'])],['المخصصات ومزايا العاملين',dL(['prov','ebo','oliab'])]];
  const taxPaid=tax+dL(['taxp'])-dA(['taxa'])+dL(['dtl']);
  const op=pbt+adjs.reduce((s,x)=>s+x[1],0)+ws.reduce((s,x)=>s+x[1],0)+taxPaid;
@@ -114,7 +115,7 @@ function fsCF(){const B=fsBuild();if(!B.ready)return fsNoData();const d=fsCFData
  +r('صافي التغير في النقدية وما في حكمها (محسوب)',d.net,'tot big')+r('رصيد النقدية أول العام',d.cashPy)+r('رصيد النقدية آخر العام (من الميزان)',d.cashCy)
  +`<tr class="${Math.abs(d.diff)<=Math.max(1,fsM()*0.05)?'okrow':'bad'}"><td>فروق غير مفسَّرة (التغير الفعلي في النقدية − المحسوب)</td><td class="num" dir="ltr">${fm(d.diff)}</td></tr>`;
  return `<div class="tw"><table class="fst cf"><thead><tr><th>البيان</th><th>السنة الحالية</th></tr></thead><tbody>${h}</tbody></table></div>
- <p class="mut small">مشتقة من حركة الأرصدة المبوَّبة (الطريقة غير المباشرة — EAS 4 / IAS 7). الفرق غير المفسَّر يدل عادة على حركات غير نقدية (استبعادات، إعادة تقييم، تحويل بين البنود، فروق عملة) أو أخطاء تبويب؛ قدِّم تفسيره وأرفق الدليل.</p>
+ <p class="mut small">مشتقة من حركة الأرصدة المبوَّبة (الطريقة غير المباشرة — EAS 4 / IAS 7). مخصص الخسائر الائتمانية مُدرج ضمن صافي أرصدة المدينين فلا يُضاف كتسوية مستقلة (منعًا للتكرار). الفرق غير المفسَّر يدل عادة على حركات غير نقدية (استبعادات، إعادة تقييم، تحويل بين البنود، فروق عملة) أو أخطاء تبويب؛ قدِّم تفسيره وأرفق الدليل.</p>
  ${edc('wp.D406.diffx',{label:'تفسير الفروق غير المفسَّرة',ph:'اكتب تفسير الفروق والدليل…',ml:1})}`}
 function fsNotes(){const B=fsBuild();if(!B.ready)return fsNoData();let h='';FSNT={map:new Map(),n:0};
  for(const st of ['SFP','PL','OCI'])for(const g of fsOrder(st))for(const n of [...B.S[st].get(g).values()].sort((a,b)=>Math.abs(b.cy)-Math.abs(a.cy))){const no=fsNoteNo(st,n.u);

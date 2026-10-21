@@ -101,7 +101,7 @@ class EngStore{
   const prev=this.map.get(k);const pv=prev?prev.v:null;if(jeq(pv,v)||(pv==null&&v===''))return false;
   let tm=Date.now();if(prev&&prev.t>=tm)tm=prev.t+1;const op={k,v,t:tm,u:SESSION.id,s:++SEQ};
   this.map.set(k,{v,t:tm,u:op.u,s:op.s});this.ver++;this.mine.set(k,op);if(!o.noUndo)pushUndo(this,k,pv,o.label);SAVER.add(this.path,op);return true}
- setMany(obj,o){let n=0;for(const k in obj)if(this.set(k,obj[k],o))n++;return n}
+ setMany(obj,o){let n=0;WAL.begin();try{for(const k in obj)if(this.set(k,obj[k],o))n++}finally{WAL.end()}return n}
  *entries(prefix){for(const [k,e] of this.map)if(k.startsWith(prefix)&&e.v!=null)yield [k,e.v]}
  async compact(){/* keep the active log small: move full history to _audit, keep only latest op per key */
   const name=writer()+'.jsonl',p=this.path+'/_ops/'+name;const st=await STORE.stat(p);if(!st||st.size<600000)return;
@@ -112,7 +112,8 @@ class EngStore{
    so closing the tab before the async write finishes never loses data (replayed at next start). ---------- */
 const WAL={ok:true,key:()=>'meap.wal.'+STORE_ID+'.'+(SESSION?SESSION.id:'x'),
  all(){return LS.get(this.key(),[])},
- push(p,o){const a=this.all();a.push({p,o});this.ok=LS.set(this.key(),a)},
+ buf:null,push(p,o){if(this.buf){this.buf.push({p,o});return}const a=this.all();a.push({p,o});this.ok=LS.set(this.key(),a)},
+ begin(){this.buf=[]},end(){const b=this.buf;this.buf=null;if(b&&b.length){const a=this.all();for(const x of b)a.push(x);this.ok=LS.set(this.key(),a)}},
  drop(items){if(!items.length)return;const ids=new Set(items.map(x=>x.o.k+'|'+x.o.t+'|'+x.o.s));const a=this.all().filter(x=>!ids.has(x.o.k+'|'+x.o.t+'|'+x.o.s));this.ok=LS.set(this.key(),a)}};
 
 const TEMP=new Map();

@@ -1,7 +1,0 @@
-/* Audit-Plus · Fonts "Audit-Plus Sans" = Cairo (variable, wght 200–1000, SIL OFL) — woff2 in assets/fonts; the build step re-inlines them as base64.
-   Why Cairo: modern geometric Arabic + Latin in one family, and its Latin digits are tabular by default (all digits share one width),
-   so numeric columns in trial balances and schedules line up without any font-feature tricks.
-   ascent/descent overrides keep the same visual baseline but shrink the font's very tall default content area (1.87em → 1.55em),
-   so controls with line-height:normal (buttons, inputs, selects) don't grow taller than before. */
-@font-face{font-family:"Audit-Plus Sans";font-style:normal;font-weight:200 1000;font-display:swap;src:url(../../assets/fonts/auditplus-sans-arabic.woff2) format("woff2");ascent-override:114.1%;descent-override:40.9%;line-gap-override:0%;unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
-@font-face{font-family:"Audit-Plus Sans";font-style:normal;font-weight:200 1000;font-display:swap;src:url(../../assets/fonts/auditplus-sans-latin.woff2) format("woff2");ascent-override:114.1%;descent-override:40.9%;line-gap-override:0%;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}

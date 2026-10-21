@@ -53,3 +53,13 @@
 .i18-sub td{font-weight:700;border-top:1px solid var(--bd,#cfd8d5)}
 .i18-mpm{border-inline-start:4px solid var(--pri,#1f6f5c);padding-inline-start:10px}
 .tbi-hdr summary{cursor:pointer}
+
+/* v11.1 — automatic preparation of the statements from the trial balance */
+.fsprep{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:8px 0;padding:8px 12px;border:1px solid var(--bd,#d8dfdc);border-radius:10px;background:var(--soft,#eef3f1);font-size:.88rem}
+.fscards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:12px 0}
+.fscard{border:1px solid var(--bd,#d8dfdc);border-radius:12px;padding:12px 14px;background:var(--card,var(--bg,#fff));display:grid;gap:6px;align-content:start}
+.fscard.ok{border-color:rgba(47,158,107,.55)}.fscard.warn{border-color:var(--md,#d9a21a)}
+.fscard h3{margin:0 0 4px;font-size:1rem}
+.fsl{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-bottom:1px dashed var(--bd,#d8dfdc)}
+.fsunl{margin:10px 0}
+@media print{.fsprep,.fsunl{display:none!important}}

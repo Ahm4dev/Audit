@@ -1173,6 +1173,16 @@ html{font-size:calc(clamp(14.5px,.28vw + 13.6px,18px) * var(--fs-scale))}
 .i18-sub td{font-weight:700;border-top:1px solid var(--bd,#cfd8d5)}
 .i18-mpm{border-inline-start:4px solid var(--pri,#1f6f5c);padding-inline-start:10px}
 .tbi-hdr summary{cursor:pointer}
+
+/* v11.1 — automatic preparation of the statements from the trial balance */
+.fsprep{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:8px 0;padding:8px 12px;border:1px solid var(--bd,#d8dfdc);border-radius:10px;background:var(--soft,#eef3f1);font-size:.88rem}
+.fscards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:12px 0}
+.fscard{border:1px solid var(--bd,#d8dfdc);border-radius:12px;padding:12px 14px;background:var(--card,var(--bg,#fff));display:grid;gap:6px;align-content:start}
+.fscard.ok{border-color:rgba(47,158,107,.55)}.fscard.warn{border-color:var(--md,#d9a21a)}
+.fscard h3{margin:0 0 4px;font-size:1rem}
+.fsl{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-bottom:1px dashed var(--bd,#d8dfdc)}
+.fsunl{margin:10px 0}
+@media print{.fsprep,.fsunl{display:none!important}}
 /* Audit-Plus · v10 · Sidebar (worksheet tree) — the ONLY stylesheet that styles #nav.
    Three visually distinct levels (sub-papers live as tabs INSIDE their main worksheet, never in the tree):
      L1  section        .ngs   (e.g. Plans and Procedures)       — filled bar, large bold title, progress pill
@@ -6196,7 +6206,7 @@ class EngStore{
   const prev=this.map.get(k);const pv=prev?prev.v:null;if(jeq(pv,v)||(pv==null&&v===''))return false;
   let tm=Date.now();if(prev&&prev.t>=tm)tm=prev.t+1;const op={k,v,t:tm,u:SESSION.id,s:++SEQ};
   this.map.set(k,{v,t:tm,u:op.u,s:op.s});this.ver++;this.mine.set(k,op);if(!o.noUndo)pushUndo(this,k,pv,o.label);SAVER.add(this.path,op);return true}
- setMany(obj,o){let n=0;for(const k in obj)if(this.set(k,obj[k],o))n++;return n}
+ setMany(obj,o){let n=0;WAL.begin();try{for(const k in obj)if(this.set(k,obj[k],o))n++}finally{WAL.end()}return n}
  *entries(prefix){for(const [k,e] of this.map)if(k.startsWith(prefix)&&e.v!=null)yield [k,e.v]}
  async compact(){/* keep the active log small: move full history to _audit, keep only latest op per key */
   const name=writer()+'.jsonl',p=this.path+'/_ops/'+name;const st=await STORE.stat(p);if(!st||st.size<600000)return;
@@ -6207,7 +6217,8 @@ class EngStore{
    so closing the tab before the async write finishes never loses data (replayed at next start). ---------- */
 const WAL={ok:true,key:()=>'meap.wal.'+STORE_ID+'.'+(SESSION?SESSION.id:'x'),
  all(){return LS.get(this.key(),[])},
- push(p,o){const a=this.all();a.push({p,o});this.ok=LS.set(this.key(),a)},
+ buf:null,push(p,o){if(this.buf){this.buf.push({p,o});return}const a=this.all();a.push({p,o});this.ok=LS.set(this.key(),a)},
+ begin(){this.buf=[]},end(){const b=this.buf;this.buf=null;if(b&&b.length){const a=this.all();for(const x of b)a.push(x);this.ok=LS.set(this.key(),a)}},
  drop(items){if(!items.length)return;const ids=new Set(items.map(x=>x.o.k+'|'+x.o.t+'|'+x.o.s));const a=this.all().filter(x=>!ids.has(x.o.k+'|'+x.o.t+'|'+x.o.s));this.ok=LS.set(this.key(),a)}};
 
 const TEMP=new Map();
@@ -9484,7 +9495,8 @@ function fsGroupRows(st,g,o){o=o||{};const B=fsBuild();const m=B.S[st].get(g);if
  for(const n of subs)h+=fsRow(n.u,{cy:n.cy*(o.neg?-1:1),py:n.py==null?null:n.py*(o.neg?-1:1)},{sub:1,ref:fsWpLink(n.line),note:`<a href="#fsn-${fsNoteNo(st,n.u)}">${fsNoteNo(st,n.u)}</a>`});
  h+=fsRow('إجمالي '+g,{cy:gs.cy*(o.neg?-1:1),py:gs.py==null?null:gs.py*(o.neg?-1:1)},{cls:'tot'});return h}
 function fsOrder(st){const B=fsBuild();const ord=CLS_GROUP_ORDER[st]||[];const ex=[...B.S[st].keys()].filter(g=>!ord.includes(g));return ord.filter(g=>B.S[st].has(g)).concat(ex)}
-const fsNoData=()=>TBSTORE.ready()?'':`<div class="note warn">لم يُحمَّل ميزان المراجعة. <a href="${L('tb/upload')}">ارفع الميزان</a> ثم بوّب الحسابات لتُولَّد القوائم تلقائيًا.</div>`;
+function fsNoData(){if(TBSTORE.ready())return'';if(CUR.eng&&(TBSTORE.loading||TBSTORE.stale())){TBSTORE.ensure();return'<div class="note">جارٍ تحميل ميزان المراجعة…</div>'}
+ return `<div class="note warn">لم يُرفع ميزان مراجعة لهذا الارتباط. <a href="${L('tb/upload')}">ارفع الميزان</a> — تُبوَّب الحسابات وتُعدّ القوائم المالية تلقائيًا في أوراق العمل.</div>`}
 function fsUnNote(){const B=fsBuild();if(!B.ready||!B.un.length)return'';const s=B.un.reduce((t,r)=>t+r.cb,0);return `<div class="note warn">⚠ ${B.un.length} حسابًا غير مبوَّب (رصيدها المجمّع <b dir="ltr">${fm(s)}</b>) خارج القوائم — <a href="${L('tb/classify')}">أكمل التبويب</a>.</div>`}
 
 /* ---- statements ---- */
@@ -9540,7 +9552,7 @@ function fsCFData(){const B=fsBuild();if(!B.ready||!B.hasPy)return null;
  const pl=l=>fsLines('PL',[l]).cy;const plp=l=>fsLines('PL',[l]).py;
  const pr=fsSt('PL'),tax=pl('taxx');const pbt=pr.cy-tax;
  const dep=-pl('depx'),eclx=-pl('eclx'),fc=-pl('fincost'),fi=pl('fininc'),as=pl('assoc');
- const adjs=[['إهلاك وإطفاء',dep],['خسائر ائتمانية متوقعة',eclx],['تكاليف التمويل',fc],['إيرادات التمويل والاستثمار',-fi],['حصة في نتائج شركات شقيقة',-as]];
+ const adjs=[['إهلاك وإطفاء',dep],['تكاليف التمويل',fc],['إيرادات التمويل والاستثمار',-fi],['حصة في نتائج شركات شقيقة',-as]];
  const ws=[['المخزون',-dA(['inv'])],['العملاء وأوراق القبض وأصول العقود',-dA(['tr','nr','ca'])],['أرصدة مدينة ومدفوعات مقدمة وأطراف ذات علاقة (مدينة)',-dA(['rpr','orc','pre'])],['الموردون وأوراق الدفع والمستحقات',dL(['tp','np','accr'])],['أرصدة دائنة أخرى ومستحقات العاملين والتزامات العقود',dL(['opay','emp','cl','rpp'])],['المخصصات ومزايا العاملين',dL(['prov','ebo','oliab'])]];
  const taxPaid=tax+dL(['taxp'])-dA(['taxa'])+dL(['dtl']);
  const op=pbt+adjs.reduce((s,x)=>s+x[1],0)+ws.reduce((s,x)=>s+x[1],0)+taxPaid;
@@ -9557,7 +9569,7 @@ function fsCF(){const B=fsBuild();if(!B.ready)return fsNoData();const d=fsCFData
  +r('صافي التغير في النقدية وما في حكمها (محسوب)',d.net,'tot big')+r('رصيد النقدية أول العام',d.cashPy)+r('رصيد النقدية آخر العام (من الميزان)',d.cashCy)
  +`<tr class="${Math.abs(d.diff)<=Math.max(1,fsM()*0.05)?'okrow':'bad'}"><td>فروق غير مفسَّرة (التغير الفعلي في النقدية − المحسوب)</td><td class="num" dir="ltr">${fm(d.diff)}</td></tr>`;
  return `<div class="tw"><table class="fst cf"><thead><tr><th>البيان</th><th>السنة الحالية</th></tr></thead><tbody>${h}</tbody></table></div>
- <p class="mut small">مشتقة من حركة الأرصدة المبوَّبة (الطريقة غير المباشرة — EAS 4 / IAS 7). الفرق غير المفسَّر يدل عادة على حركات غير نقدية (استبعادات، إعادة تقييم، تحويل بين البنود، فروق عملة) أو أخطاء تبويب؛ قدِّم تفسيره وأرفق الدليل.</p>
+ <p class="mut small">مشتقة من حركة الأرصدة المبوَّبة (الطريقة غير المباشرة — EAS 4 / IAS 7). مخصص الخسائر الائتمانية مُدرج ضمن صافي أرصدة المدينين فلا يُضاف كتسوية مستقلة (منعًا للتكرار). الفرق غير المفسَّر يدل عادة على حركات غير نقدية (استبعادات، إعادة تقييم، تحويل بين البنود، فروق عملة) أو أخطاء تبويب؛ قدِّم تفسيره وأرفق الدليل.</p>
  ${edc('wp.D406.diffx',{label:'تفسير الفروق غير المفسَّرة',ph:'اكتب تفسير الفروق والدليل…',ml:1})}`}
 function fsNotes(){const B=fsBuild();if(!B.ready)return fsNoData();let h='';FSNT={map:new Map(),n:0};
  for(const st of ['SFP','PL','OCI'])for(const g of fsOrder(st))for(const n of [...B.S[st].get(g).values()].sort((a,b)=>Math.abs(b.cy)-Math.abs(a.cy))){const no=fsNoteNo(st,n.u);
@@ -11815,7 +11827,7 @@ fsCFData=function(){if(I18S.mode!=='i18')return fsCFData_ias1();
  const dA=ids=>{const x=fsLines('SFP',ids);return x.cy-x.py};const dL=dA;const A=l=>i18Line(l).cy;
  const inOp=l=>{const c=i18Cat(l);return c==='op'||c==='disc'};
  const tax=A('taxx'),dep=-A('depx'),eclx=-A('eclx'),fc=-A('fincost'),fi=A('fininc'),as=A('assoc');
- const adjs=[['إهلاك وإطفاء',dep],['خسائر ائتمانية متوقعة',eclx]];
+ const adjs=[['إهلاك وإطفاء',dep]];/* ECL allowance is already inside the net receivable lines used below — adding the expense back would double count it */
  if(inOp('fincost')&&fc)adjs.push(['تكاليف التمويل (تُعرض في التمويل)',fc]);
  if(inOp('fininc')&&fi)adjs.push(['إيرادات التمويل والاستثمار (تُعرض في الاستثمار)',-fi]);
  if(inOp('assoc')&&as)adjs.push(['حصة في نتائج شركات شقيقة (غير نقدية)',-as]);
@@ -11842,7 +11854,7 @@ fsCF=function(){const B=fsBuild();if(!B.ready)return fsNoData();if(I18S.mode!=='
  +r('صافي التغير في النقدية وما في حكمها (محسوب)',d.net,'tot big')+r('رصيد النقدية أول العام',d.cashPy)+r('رصيد النقدية آخر العام (من الميزان)',d.cashCy)
  +`<tr class="${Math.abs(d.diff)<=Math.max(1,fsM()*0.05)?'okrow':'bad'}"><td>فروق غير مفسَّرة (التغير الفعلي في النقدية − المحسوب)</td><td class="num" dir="ltr">${fm(d.diff)}</td></tr>`;
  return `<div class="tw"><table class="fst cf"><thead><tr><th>البيان</th><th>السنة الحالية</th></tr></thead><tbody>${h}</tbody></table></div>
- <p class="mut small">مشتقة من حركة الأرصدة المبوَّبة (الطريقة غير المباشرة) وفق IAS 7 المعدَّل بموجب IFRS 18: تبدأ من ربح التشغيل، والفوائد والتوزيعات المقبوضة في الاستثمار، والفوائد المدفوعة والتوزيعات المدفوعة في التمويل. الفرق غير المفسَّر يدل عادة على حركات غير نقدية أو فروق عملة أو أخطاء تبويب؛ قدِّم تفسيره وأرفق الدليل.</p>
+ <p class="mut small">مشتقة من حركة الأرصدة المبوَّبة (الطريقة غير المباشرة) وفق IAS 7 المعدَّل بموجب IFRS 18 (مخصص الخسائر الائتمانية مُدرج ضمن صافي أرصدة المدينين فلا يُضاف مرة ثانية): تبدأ من ربح التشغيل، والفوائد والتوزيعات المقبوضة في الاستثمار، والفوائد المدفوعة والتوزيعات المدفوعة في التمويل. الفرق غير المفسَّر يدل عادة على حركات غير نقدية أو فروق عملة أو أخطاء تبويب؛ قدِّم تفسيره وأرفق الدليل.</p>
  ${edc('wp.D406.diffx',{label:'تفسير الفروق غير المفسَّرة',ph:'اكتب تفسير الفروق والدليل…',ml:1})}`};
 /* ---- wire pages ---- */
 FS_PAGES.forEach(x=>{if(x[0]==='pl')x[2]=()=>fsPL();if(x[0]==='cf')x[2]=()=>fsCF()});
@@ -11850,6 +11862,186 @@ XP.fs_pl=(it,p,ref)=>{FSNT={map:new Map(),n:0};return fsPageHead(it,ref)+i18Bar(
 XP.fs_cf=(it,p,ref)=>{FSNT={map:new Map(),n:0};return fsPageHead(it,ref)+i18Bar()+fsCF()};
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button[data-i18]');if(!b)return;const v=b.dataset.i18;if(v.startsWith('mode:')){I18S.mode=v.slice(5)==='ias1'?'ias1':'i18';i18Save();route(true)}});
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.dataset)return;if(t.dataset.i18==='gp'){I18S.gp=t.checked?1:0;i18Save();route(true)}else if((t.dataset.k||'').startsWith('i18.cat.')){I18V++;setTimeout(()=>route(true),0)}});
+;
+/* Audit-Plus · v11.1 · Automatic preparation of the primary statements (SFP / P&L / cash flows) from the classified trial balance.
+   Flow:  upload TB → (auto) classify unclassified accounts with the engine's High + Medium suggestions → statements appear in their working papers
+          (D401 financial position · D402 profit or loss · D406 cash flows, plus D403/D404/D407/D405/D410) with no manual step.
+   - Never overwrites a classification the user (or the TB file) already made: only accounts with NO classification are touched.
+   - Medium-confidence results are remembered (fsp.auto) and listed for review; accounts with no confident suggestion stay visible on every statement page.
+   - Skipped for read-only users / locked engagements. Every automatic run is written to the audit trail (fs.prepare) and is undoable. */
+const FSP={busy:false,done:new Set()};
+
+/* ---------- status of the preparation (cached per data version) ---------- */
+function fsPrepStatus(){return vcache('fsps:'+TBSTORE.ver+':'+CLSV+':'+TBMV,()=>{const rows=TBSTORE.rows;let cls=0;const un=[];
+ for(const r of rows){if(clsOf(r.code))cls++;else un.push(r)}
+ const total=rows.length;const auto=CUR.eng?CUR.eng.get('fsp.auto',null):null;
+ return{total,cls,un,pct:total?Math.round(cls/total*100):0,review:auto?Object.keys(auto).filter(c=>auto[c]==='M'&&clsOf(c)).length:0}})}
+
+/* ---------- the preparation itself ---------- */
+async function fsPrepare(o){o=o||{};if(!TBSTORE.ready()||!CUR.eng||RO()||FSP.busy)return null;FSP.busy=true;
+ try{await clsLoadCompany();
+  const un=TBSTORE.rows.filter(r=>!clsOf(r.code));const put={},med={};let h=0,m=0,left=0;
+  await CSUG.each(un,(r,s)=>{if(s&&(s.conf==='H'||s.conf==='M')){put['tbc.'+tbk(r.code)]=[s.st,s.g,s.u,s.n];if(s.conf==='H')h++;else{m++;med[r.code]='M'}}else left++});
+  const n=h+m;
+  if(n){clsApply(put,'إعداد القوائم المالية آليًا من الميزان');
+   if(m){const prev=CUR.eng.get('fsp.auto',null)||{};CUR.eng.set('fsp.auto',Object.assign({},prev,med),{noUndo:true})}
+   audit('fs.prepare',{n,h,m,left,auto:!!o.auto,v:TBSTORE.ver})}
+  return{n,h,m,left,total:TBSTORE.rows.length}}
+ finally{FSP.busy=false}}
+function fsAnnounce(r,manual){if(!r)return;
+ if(!r.n){if(manual)toast(r.left?`لا يوجد اقتراح بثقة كافية لـ ${r.left.toLocaleString('en-US')} حساب — أكملها من «التبويب».`:'كل حسابات الميزان مبوّبة — القوائم محدَّثة.','i');return}
+ toast(`أُعدّت القوائم المالية من الميزان: تبويب ${r.n.toLocaleString('en-US')} حساب${r.m?` (منها ${r.m.toLocaleString('en-US')} بثقة متوسطة — راجعها)`:''}${r.left?` · ${r.left.toLocaleString('en-US')} حساب يحتاج تبويبًا يدويًا`:''}.`,'s',12000,{label:'فتح قائمة المركز المالي',fn:()=>{location.hash=L('wp/D401')}})}
+
+/* run automatically right after a trial balance version is accepted */
+(function(){const o=uplAccept;uplAccept=async function(){const before=TBSTORE.active();const r=await o.apply(this,arguments);
+ try{const v=TBSTORE.active();if(v&&v!==before&&TBSTORE.ready()){FSP.done.add(CUR.eng.path+'|'+v);const res=await fsPrepare({auto:true});fsAnnounce(res);if(res&&res.n)UI.refreshView()}}catch(e){logErr('fs auto-prepare',e)}
+ return r}})();
+/* …and once when a statement page is opened for a trial balance that has no classification at all (e.g. uploaded before this feature existed) */
+function fsAutoOnce(){try{if(!TBSTORE.ready()||RO()||FSP.busy||!CUR.eng)return;const k=CUR.eng.path+'|'+TBSTORE.ver;if(FSP.done.has(k))return;FSP.done.add(k);
+ if(TBSTORE.rows.some(r=>clsOf(r.code)))return;
+ fsPrepare({auto:true}).then(r=>{if(r&&r.n){fsAnnounce(r);UI.refreshView()}}).catch(e=>logErr('fs auto-once',e))}catch(e){logErr('fsAutoOnce',e)}}
+
+/* ---------- UI: preparation bar on every statement page ---------- */
+function fsPrepBar(){if(!TBSTORE.ready())return'';const S=fsPrepStatus();const ro=RO();
+ return `<div class="fsprep noprint"><span>المصدر: <b>ميزان v${TBSTORE.ver}</b> · ${S.total.toLocaleString('en-US')} حساب</span><span>المبوَّب: <b dir="ltr">${S.cls.toLocaleString('en-US')} / ${S.total.toLocaleString('en-US')}</b> (${S.pct}%)</span>${S.review?`<span class="mut small">${S.review.toLocaleString('en-US')} حساب مبوَّب آليًا بثقة متوسطة — <a href="${L('tb/fs')}">راجعها</a></span>`:''}${ro?'':`<button class="btn sm" type="button" data-fsp="prep">${S.un.length?'⚙ إعداد القوائم من الميزان':'↻ تحديث القوائم'}</button>`}<a class="btn g sm" href="${L('tb/cls')}">🏷 مراجعة التبويب</a><a class="btn g sm" href="${L('tb/fs')}">📊 ملخص القوائم</a></div>`}
+const fsPageHead_base=fsPageHead;
+fsPageHead=function(it,ref,sub){fsAutoOnce();return fsPageHead_base(it,ref,sub)+fsPrepBar()};
+/* accounts left out of the statements: absolute total, biggest items, and one-click acceptance of the engine's suggestion */
+function fsUnList(list){const top=list.slice().sort((a,b)=>Math.abs(b.cb)-Math.abs(a.cb)).slice(0,10);const ro=RO();
+ const rows=top.map(r=>{const s=CSUG.one(r.code);const sug=s?`${esc(CLS_ST_NAME[s.st]||'')} › ${esc(s.g)}${s.u?' › '+esc(s.u):''} <span class="mut small">(${{H:'عالية',M:'متوسطة',L:'منخفضة'}[s.conf]})</span>`:'<span class="mut">لا يوجد اقتراح — بوّبه من «التبويب»</span>';
+  return `<tr><td class="ref">${esc(r.code)}</td><td class="tx">${esc(r.name||r.nameEn)}</td><td class="num" dir="ltr">${fm(r.cb)}</td><td>${sug}</td><td>${s&&!ro?`<button class="btn g sm" type="button" data-fsp="acc" data-code="${esc(r.code)}">قبول</button>`:''}</td></tr>`}).join('');
+ return `<details class="card noprint fsunl" open><summary><b>أكبر الحسابات غير المبوَّبة</b> <span class="mut small">(${top.length} من ${list.length.toLocaleString('en-US')})</span></summary><div class="tw"><table><thead><tr><th>الكود</th><th>الحساب</th><th>الرصيد</th><th>الاقتراح</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></details>`}
+fsUnNote=function(){const B=fsBuild();if(!B.ready||!B.un.length)return'';
+ const nz=B.un.filter(r=>Math.abs(r.cb)>.005||Math.abs(r.py||0)>.005);if(!nz.length)return'';/* zero-balance accounts cannot change a statement */
+ const s=nz.reduce((t,r)=>t+Math.abs(r.cb),0);
+ return `<div class="note warn">⚠ ${nz.length.toLocaleString('en-US')} حسابًا برصيد غير مبوَّب (مجموع أرصدتها المطلقة <b dir="ltr">${fm(s)}</b>) خارج القوائم — ${RO()?'':'<button class="btn sm" type="button" data-fsp="prep">⚙ تبويب آلي</button> '}<a href="${L('tb/cls')}">أو أكمل التبويب يدويًا</a>.</div>${fsUnList(nz)}`};
+
+/* ---------- UI: events ---------- */
+document.addEventListener('click',async e=>{const b=e.target instanceof Element&&e.target.closest('[data-fsp]');if(!b||b.disabled)return;e.preventDefault();const a=b.dataset.fsp;
+ try{if(a==='prep'){b.disabled=true;const r=await fsPrepare({});fsAnnounce(r,true);UI.refreshView()}
+  else if(a==='acc'){const code=b.dataset.code,s=CSUG.one(code);if(s&&!RO()){clsApply({['tbc.'+tbk(code)]:[s.st,s.g,s.u,s.n]},'قبول اقتراح تبويب '+code);UI.refreshView()}}}
+ catch(err){logErr('fsp action',err);toast('تعذر إعداد القوائم: '+errMsg(err),'e')}});
+
+/* ---------- TB tab “📊 القوائم المالية”: one page that shows the three statements' status and links to their working papers ---------- */
+(function(){const i=TBTABS.findIndex(x=>x[0]==='map');TBTABS.splice(i<0?TBTABS.length:i+1,0,['fs','📊 القوائم المالية'])})();
+function fsAutoReview(){const a=CUR.eng.get('fsp.auto',null)||{};const rows=Object.keys(a).filter(c=>a[c]==='M'&&clsOf(c)&&TBSTORE.by.get(c)).map(c=>({r:TBSTORE.by.get(c),c:clsOf(c)})).sort((x,y)=>Math.abs(y.r.cb)-Math.abs(x.r.cb));
+ if(!rows.length)return'';
+ return `<details class="card fsunl"><summary><b>مبوَّبة آليًا بثقة متوسطة — راجعها</b> <span class="mut small">(${rows.length.toLocaleString('en-US')} حساب · الأكبر أولًا)</span></summary><div class="tw"><table><thead><tr><th>الكود</th><th>الحساب</th><th>الرصيد</th><th>التبويب المقترح</th></tr></thead><tbody>${rows.slice(0,25).map(x=>`<tr><td class="ref">${esc(x.r.code)}</td><td class="tx">${esc(x.r.name||x.r.nameEn)}</td><td class="num" dir="ltr">${fm(x.r.cb)}</td><td>${esc(CLS_ST_NAME[x.c.st]||'')} › ${esc(x.c.g)}${x.c.u?' › '+esc(x.c.u):''}</td></tr>`).join('')}</tbody></table></div><p class="small mut">لتعديل أي حساب افتح <a href="${L('tb/cls')}">التبويب</a>؛ أي تعديل ينعكس فورًا على القوائم.</p></details>`}
+function tbFsHTML(){const S=fsPrepStatus();const ro=RO();const B=fsBuild();
+ const kp=(l,v,c,sub)=>`<div class="tbi-kpi ${c||''}"><span>${l}</span><b dir="ltr">${v}</b>${sub?`<small>${sub}</small>`:''}</div>`;
+ const bal=fsSFPbal(),pl=fsSt('PL'),cf=fsCFData();let ta=0,tel=0;
+ for(const g of fsOrder('SFP')){const x=fsG('SFP',g).cy;if(FS_ASSET(g))ta+=x;else tel+=x}tel+=pl.cy+fsSt('OCI').cy+fsSt('EQ').cy;
+ const rev=fsG('PL','الإيرادات'),opP=(typeof I18S!=='undefined'&&I18S.mode==='i18')?i18Model().opP:null;
+ const cfOk=!!cf&&Math.abs(cf.diff)<=Math.max(1,fsM()*0.05);
+ const card=(ref,title,rows,ok,msg)=>`<div class="fscard ${ok?'ok':'warn'}"><h3><a href="${L('wp/'+ref)}">${ref} — ${title}</a></h3>${rows.map(r=>`<div class="fsl"><span>${r[0]}</span><b dir="ltr">${r[1]}</b></div>`).join('')}<p class="small ${ok?'ok':'bad'}">${msg}</p><a class="btn sm" href="${L('wp/'+ref)}">فتح ورقة العمل ←</a></div>`;
+ const un=S.un.filter(r=>Math.abs(r.cb)>.005||Math.abs(r.py||0)>.005);
+ const ready=S.cls>0&&!un.length&&bal.ok;
+ return tbHead('fs')+`<div class="note ${ready?'ok':'warn'}"><b>${ready?'✓ القوائم جاهزة':'⚠ القوائم تحتاج مراجعة'}</b> — تُولَّد القوائم المالية آليًا من الميزان بعد التبويب والتسويات، وتظهر في أوراق عملها مباشرةً. ${S.pct}% من الحسابات مبوَّبة${un.length?` و${un.length.toLocaleString('en-US')} حسابًا برصيد خارج القوائم`:''}.</div>
+ <div class="row noprint" style="gap:8px;flex-wrap:wrap;margin:8px 0">${ro?'':`<button class="btn" type="button" data-fsp="prep">⚙ إعداد القوائم من الميزان (تبويب آلي للحسابات غير المبوَّبة)</button>`}<a class="btn g" href="${L('tb/cls')}">🏷 التبويب</a><a class="btn g" href="${L('tb/map')}">🔗 الربط</a></div>
+ <div class="tbi-kpis">${kp('الحسابات',S.total.toLocaleString('en-US'))}${kp('المبوَّب',S.pct+'%',S.pct===100?'ok':'warn',S.cls.toLocaleString('en-US')+' / '+S.total.toLocaleString('en-US'))}${kp('اتزان المركز المالي',bal.ok?'✓':'✖',bal.ok?'ok':'bad',bal.txt)}${kp('السنة السابقة',B.hasPy?'متوفرة':'غير متوفرة',B.hasPy?'ok':'warn',B.hasPy?'':'لازمة للتدفقات والمقارنة')}</div>
+ <div class="fscards">
+ ${card('D401','قائمة المركز المالي',[['إجمالي الموجودات',fm(ta)],['إجمالي حقوق الملكية والمطلوبات',fm(tel)],['الفرق',fm(ta-tel)]],bal.ok,bal.ok?'✔ متزنة':'✖ غير متزنة — راجع التبويب والتسويات')}
+ ${card('D402','قائمة الدخل (الأرباح أو الخسائر)',[['الإيرادات',fm(rev.cy)]].concat(opP?[['ربح (خسارة) التشغيل',fm(opP.cy)]]:[]).concat([['صافي ربح (خسارة) العام',fm(pl.cy)],['السنة السابقة',pl.py==null?'—':fm(pl.py)]]),S.cls>0,S.cls>0?'مولَّدة من البنود المبوَّبة':'لا حسابات مبوَّبة بعد')}
+ ${card('D406','قائمة التدفقات النقدية',cf?[['صافي التشغيل',fm(cf.op)],['صافي الاستثمار',fm(cf.invI)],['صافي التمويل',fm(cf.finT)],['صافي التغير في النقدية',fm(cf.net)],['فروق غير مفسَّرة',fm(cf.diff)]]:[['الحالة','يلزم ميزان السنة السابقة']],cfOk,cf?(cfOk?'✔ مطابقة لحركة النقدية':'✖ فرق غير مفسَّر — راجع الحركات غير النقدية والتبويب'):'ارفع الميزان بعمود «السنة السابقة»')}
+ </div>
+ <p class="small noprint">أوراق أخرى مبنية على نفس البيانات: <a href="${L('wp/D403')}">D403 الدخل الشامل</a> · <a href="${L('wp/D404')}">D404 التغير في حقوق الملكية</a> · <a href="${L('wp/D407')}">D407 الإيضاحات</a> · <a href="${L('wp/D405')}">D405 المسودة</a> · <a href="${L('wp/D410')}">D410 النهائية</a></p>
+ ${un.length?fsUnList(un):''}${fsAutoReview()}`}
+(function(){const o=V.tb;V.tb=function(arg){arg=arg||'';if(arg==='fs'&&TBSTORE.ready()&&!TBSTORE.loading&&!TBSTORE.stale())return tbFsHTML();return o.call(this,arg)}})();
+/* the classification tab itself: a pointer to where the result shows up */
+(function(){const o=clsHTML;clsHTML=function(){const r=o.apply(this,arguments);if(!TBSTORE.ready())return r;
+ return `<div class="fsprep noprint"><span>🔗 كل ما تبوّبه هنا يظهر فورًا في:</span><a href="${L('wp/D401')}">D401 المركز المالي</a><a href="${L('wp/D402')}">D402 الدخل</a><a href="${L('wp/D406')}">D406 التدفقات</a><a class="btn g sm" href="${L('tb/fs')}">📊 ملخص القوائم</a></div>`+r}})();
+
+/* English phrases for the runtime translation layer */
+Object.assign(I18N_EN,{
+"أُعدّت القوائم المالية من الميزان":"Financial statements prepared from the trial balance",
+"فتح قائمة المركز المالي":"Open statement of financial position",
+"إعداد القوائم من الميزان":"Prepare statements from TB",
+"تحديث القوائم":"Refresh statements",
+"مراجعة التبويب":"Review classification",
+"ملخص القوائم":"Statements summary",
+"القوائم المالية":"Financial statements",
+"المبوَّب":"Classified",
+"المصدر":"Source",
+"حسابًا برصيد غير مبوَّب":"accounts with unclassified balances",
+"تبويب آلي":"Auto-classify",
+"أو أكمل التبويب يدويًا":"or complete the classification manually",
+"أكبر الحسابات غير المبوَّبة":"Largest unclassified accounts",
+"مبوَّبة آليًا بثقة متوسطة — راجعها":"Auto-classified with medium confidence — review",
+"القوائم جاهزة":"Statements ready",
+"القوائم تحتاج مراجعة":"Statements need review",
+"اتزان المركز المالي":"Financial position balance",
+"السنة السابقة":"Prior year",
+"فتح ورقة العمل":"Open working paper",
+"كل ما تبوّبه هنا يظهر فورًا في":"Everything you classify here shows immediately in",
+"جارٍ تحميل ميزان المراجعة…":"Loading the trial balance…",
+"تُولَّد القوائم المالية آليًا من الميزان بعد التبويب والتسويات، وتظهر في أوراق عملها مباشرةً.":"The financial statements are generated automatically from the trial balance after classification and adjustments, and appear in their working papers immediately.",
+"من الحسابات مبوَّبة":"of accounts are classified",
+"حساب مبوَّب آليًا بثقة متوسطة —":"accounts auto-classified with medium confidence —",
+"حساب":"accounts","راجعها":"review them",
+"إعداد القوائم من الميزان (تبويب آلي للحسابات غير المبوَّبة)":"Prepare statements from TB (auto-classify unclassified accounts)",
+"المصدر: ":"Source: ","ميزان v":"Trial balance v","لتعديل أي حساب افتح":"To change an account open",
+"التبويب":"classification","أي تعديل ينعكس فورًا على القوائم.":"any change is reflected immediately in the statements.",
+"أوراق أخرى مبنية على نفس البيانات:":"Other papers built on the same data:",
+"لا يوجد اقتراح — بوّبه من «التبويب»":"No suggestion — classify it in the Classification tab"});
+;
+/* Audit-Plus · v11.1 · Export the CLASSIFIED trial balance to Excel (.xlsx)
+   Sheet 1  الميزان المبوّب   : one row per account — opening, movements, closing, adjustments, adjusted, prior year, statement / group / sub-group, mapped FS line, classification status
+   Sheet 2  ملخص التبويب      : totals per statement › group › sub-group (adjusted, unadjusted, prior year) + statement totals
+   Sheet 3  فحوصات            : TB balance, classification coverage, unclassified amount, adjustments, source stamp
+   Sign convention is the TB's own: debit (+) / credit (−). Values only (no formulas) so the file opens identically everywhere. */
+const TBX_ORDER=['SFP','PL','OCI','EQ'];
+function tbClsSheets(){
+ const rows=TBSTORE.rows,S=CLS_ST_NAME,auto=(CUR.eng&&CUR.eng.get('fsp.auto',null))||{};
+ const py=r=>r2(TBSTORE.pyMap?TBSTORE.bal(r,{priorYear:true}):(r.py||0));
+ const rank=c=>{const i=c?TBX_ORDER.indexOf(c.st):-1;return i<0?TBX_ORDER.length:i};
+ const data=rows.map(r=>{const c=clsOf(r.code),ok=!!c&&!!S[c.st],adj=r2(TBSTORE.adj(r.code)),cb=r2(r.cb),line=tbMapOf(r.code);
+  return{r,c:ok?c:null,cb,adj,adjd:r2(cb+adj),py:py(r),line:line&&AC[line]?AC[line].n:'',st:ok?auto[r.code]==='M'?'مبوَّب آليًا (راجعه)':'مبوَّب':'غير مبوَّب'}});
+ data.sort((a,b)=>rank(a.c)-rank(b.c)||String(a.r.code).localeCompare(String(b.r.code),'en',{numeric:true}));
+ const main=[['كود الحساب','اسم الحساب','Account name (EN)','أول المدة','حركة مدين','حركة دائن','الرصيد قبل التسويات','التسويات','الرصيد بعد التسويات','رصيد السنة السابقة','القائمة','المجموعة','المجموعة الفرعية','بند الربط','حالة التبويب']];
+ for(const d of data){const r=d.r,c=d.c;main.push([r.code,r.name||'',r.nameEn||'',r2(r.ob),r2(r.mvDr),r2(r.mvCr),d.cb,d.adj,d.adjd,d.py,c?S[c.st]:'',c?c.g||'':'',c?c.u||'':'',d.line,d.st])}
+ /* summary per statement › group › sub-group */
+ const grp=new Map();for(const d of data){const k=(d.c?d.c.st:'~')+'|'+(d.c?d.c.g||'':'')+'|'+(d.c?d.c.u||'':'');let g=grp.get(k);if(!g){g={st:d.c?S[d.c.st]:'غير مبوَّب',o:rank(d.c),g:d.c?d.c.g||'':'',u:d.c?d.c.u||'':'',n:0,cb:0,adjd:0,py:0};grp.set(k,g)}g.n++;g.cb+=d.cb;g.adjd+=d.adjd;g.py+=d.py}
+ const gl=[...grp.values()].sort((a,b)=>a.o-b.o||a.g.localeCompare(b.g,'ar')||a.u.localeCompare(b.u,'ar'));
+ const sum=[['القائمة','المجموعة','المجموعة الفرعية','عدد الحسابات','قبل التسويات','بعد التسويات','السنة السابقة']];
+ let cur=null,t=null;const flush=()=>{if(t)sum.push([t.st,'الإجمالي','',t.n,r2(t.cb),r2(t.adjd),r2(t.py)])};
+ for(const g of gl){if(cur!==g.st){flush();cur=g.st;t={st:g.st,n:0,cb:0,adjd:0,py:0}}t.n+=g.n;t.cb+=g.cb;t.adjd+=g.adjd;t.py+=g.py;sum.push([g.st,g.g,g.u,g.n,r2(g.cb),r2(g.adjd),r2(g.py)])}flush();
+ /* checks */
+ const tot=k=>r2(data.reduce((s,d)=>s+d[k],0)),un=data.filter(d=>!d.c),unB=r2(un.reduce((s,d)=>s+Math.abs(d.cb),0));
+ const chk=[['البند','القيمة'],['الشركة',CUR.company.name],['السنة',G('eng.year','')],['المصدر',TBSTORE.stamp()],['عدد الحسابات',data.length],
+  ['مجموع الأرصدة قبل التسويات (يجب = 0)',tot('cb')],['مجموع التسويات (يجب = 0)',tot('adj')],['مجموع الأرصدة بعد التسويات (يجب = 0)',tot('adjd')],['مجموع السنة السابقة (يجب = 0)',tot('py')],
+  ['الميزان متوازن',Math.abs(tot('adjd'))<0.01&&Math.abs(tot('cb'))<0.01?'نعم':'لا'],
+  ['حسابات مبوَّبة',data.length-un.length],['حسابات مبوَّبة آليًا بثقة متوسطة (راجعها)',data.filter(d=>d.st.startsWith('مبوَّب آليًا')).length],
+  ['حسابات غير مبوَّبة',un.length],['مجموع أرصدة غير المبوَّب (مطلق)',unB],['أُصدر في',localISO()+' بواسطة '+SESSION.display],['إشارة الأرصدة','مدين (+) / دائن (−)'],['ملاحظة','إجمالي «مركز مالي» = − إجمالي «دخل» = ربح (خسارة) العام قبل ترحيله إلى حقوق الملكية.']];
+ return[{name:'الميزان المبوّب',rows:main,widths:[14,38,28,16,16,16,18,16,18,18,14,24,28,32,20]},{name:'ملخص التبويب',rows:sum,widths:[16,30,34,12,18,18,18]},{name:'فحوصات',rows:chk,widths:[48,40],header:true}]}
+/* English version of the workbook when the interface language is English (account codes/names and the company name are user data and are never translated) */
+const TBX_EN={'الميزان المبوّب':'Classified TB','ملخص التبويب':'Classification summary','فحوصات':'Checks',
+ 'كود الحساب':'Account code','اسم الحساب':'Account name','Account name (EN)':'Account name (EN)','أول المدة':'Opening balance','حركة مدين':'Debit movement','حركة دائن':'Credit movement','الرصيد قبل التسويات':'Balance before adjustments','التسويات':'Adjustments','الرصيد بعد التسويات':'Balance after adjustments','رصيد السنة السابقة':'Prior-year balance','القائمة':'Statement','المجموعة':'Group','المجموعة الفرعية':'Sub-group','بند الربط':'Mapped FS line','حالة التبويب':'Classification status',
+ 'مركز مالي':'Financial position','دخل':'Income','دخل شامل':'Other comprehensive income','حقوق ملكية':'Equity','مبوَّب':'Classified','مبوَّب آليًا (راجعه)':'Auto-classified (review)','غير مبوَّب':'Unclassified','الإجمالي':'Total',
+ 'عدد الحسابات':'No. of accounts','قبل التسويات':'Before adjustments','بعد التسويات':'After adjustments','السنة السابقة':'Prior year',
+ 'البند':'Item','القيمة':'Value','الشركة':'Company','السنة':'Year','المصدر':'Source','نعم':'Yes','لا':'No',
+ 'مجموع الأرصدة قبل التسويات (يجب = 0)':'Sum of balances before adjustments (must be 0)','مجموع التسويات (يجب = 0)':'Sum of adjustments (must be 0)','مجموع الأرصدة بعد التسويات (يجب = 0)':'Sum of balances after adjustments (must be 0)','مجموع السنة السابقة (يجب = 0)':'Sum of prior-year balances (must be 0)','الميزان متوازن':'Trial balance is balanced',
+ 'حسابات مبوَّبة':'Classified accounts','حسابات مبوَّبة آليًا بثقة متوسطة (راجعها)':'Auto-classified with medium confidence (review)','حسابات غير مبوَّبة':'Unclassified accounts','مجموع أرصدة غير المبوَّب (مطلق)':'Total of unclassified balances (absolute)','أُصدر في':'Exported on','إشارة الأرصدة':'Balance sign','مدين (+) / دائن (−)':'Debit (+) / Credit (−)','ملاحظة':'Note',
+ '«مركز مالي» = − إجمالي «دخل» = ربح (خسارة) العام قبل ترحيله إلى حقوق الملكية.':'',
+ 'إجمالي «مركز مالي» = − إجمالي «دخل» = ربح (خسارة) العام قبل ترحيله إلى حقوق الملكية.':'Total of “Financial position” = − total of “Income” = profit (loss) for the year before it is closed to equity.'};
+function tbxEnglish(sheets){const T=s=>typeof s==='string'?(TBX_EN[s]!==undefined?TBX_EN[s]:XT.tr(s)):s;
+ const by=/ بواسطة /;
+ return sheets.map((sh,si)=>({...sh,name:T(sh.name),rows:sh.rows.map((r,ri)=>r.map((v,ci)=>{
+  if(typeof v!=='string')return v;
+  if(si===0&&ri>0&&ci<3)return v;                       /* account code / name: user data */
+  if(si===2&&ri>0&&ci===1&&['الشركة','السنة'].includes(sh.rows[ri][0]))return v;   /* company name / year */
+  if(si===2&&ri>0&&ci===1&&sh.rows[ri][0]==='أُصدر في')return v.replace(by,' by ');
+  return T(v)}))}))}
+function tbClsXlsxExport(){if(!TBSTORE.ready()){toast('لا يوجد ميزان معتمد للتصدير.','e');return}
+ try{const nm=sanitizeName('Classified TB - '+CUR.company.name+' '+G('eng.year',''),90);let sh=tbClsSheets();if(XT.on())sh=tbxEnglish(sh);
+  downloadBlob(xlsxBlob(sh,{title:nm,author:SESSION.display}),nm+'.xlsx');
+  audit('export.tb.classified',{fmt:'xlsx',rows:TBSTORE.rows.length,v:TBSTORE.ver});toast(`تم تصدير الميزان المبوَّب (${TBSTORE.rows.length.toLocaleString('en-US')} حساب) إلى Excel.`,'s')}
+ catch(e){logErr('tbClsXlsx',e);toast('تعذر التصدير: '+errMsg(e),'e')}}
+document.addEventListener('click',e=>{const b=e.target instanceof Element&&e.target.closest('[data-fsx]');if(!b)return;e.preventDefault();tbClsXlsxExport()});
+const TBX_BTN=`<button class="btn sm" type="button" data-fsx="tb">⤓ تصدير الميزان المبوَّب (Excel)</button>`;
+/* button on every TB tab that is about the classified data + inside the statements summary + the statement prep bar */
+(function(){const o=tbHead;tbHead=function(a){const h=o.apply(this,arguments);return(TBSTORE.ready()&&['','cls','map','fs','link'].includes(a||''))?h+`<div class="row noprint" style="margin:6px 0">${TBX_BTN}</div>`:h}})();
+(function(){const o=fsPrepBar;fsPrepBar=function(){const h=o.apply(this,arguments);return h?h.replace(/<\/div>$/,TBX_BTN+'</div>'):h}})();
+Object.assign(I18N_EN,{"تصدير الميزان المبوَّب (Excel)":"Export classified TB (Excel)","الميزان المبوّب":"Classified TB","ملخص التبويب":"Classification summary"});
 ;
 /* Audit-Plus · v11 · Worksheet templates — a purpose-built working template for every audit area (instead of one generic layout).
    Each family of areas gets its own input grids (with live formulas), automatic tie-out to the trial balance (natural sign, after adjustments),
